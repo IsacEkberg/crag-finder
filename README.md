@@ -1,4 +1,6 @@
 
+[![Circle CI](https://circleci.com/gh/IsacEkberg/crag-finder.svg?style=svg)](https://circleci.com/gh/IsacEkberg/crag-finder)
+
 Elastic Beanstalk Docker template for Django
 ============================================
 
