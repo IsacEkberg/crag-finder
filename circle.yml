@@ -7,7 +7,9 @@ machine:
 dependencies:
   pre:
     - pip install awscli
-    - docker build -t cragfinder/development:$CIRCLE_SHA1 .
+    - git archive -o docker/mysite.tar HEAD
+    - docker build -t cragfinder/development:$CIRCLE_SHA1 --rm docker
+    - rm -f docker/mysite.tar
 
 test:
   post:
