@@ -152,8 +152,8 @@ elif ON_AWS:
     S3_URL = 'https://{0}.s3.amazonaws.com/'.format(AWS_STORAGE_BUCKET_NAME)
     STATIC_URL = os.environ.get('STATIC_URL', S3_URL + 'static/')
 
-    DEFAULT_FILE_STORAGE = 'iportalen.storage.MediaRootS3BotoStorage'
-    STATICFILES_STORAGE = 'iportalen.storage.StaticRootS3BotoStorage'
+    DEFAULT_FILE_STORAGE = 'django_app.storage.MediaRootS3BotoStorage'
+    STATICFILES_STORAGE = 'django_app.storage.StaticRootS3BotoStorage'
 
     MEDIA_URL = os.environ.get('MEDIA_URL', S3_URL + 'client/')
 
