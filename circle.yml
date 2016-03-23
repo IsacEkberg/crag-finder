@@ -20,5 +20,8 @@ deployment:
   elasticbeanstalk:
     branch: master
     commands:
+      - echo $DOCKER_EMAIL
+      - echo $DOCKER_USER
+      - echo $DOCKER_PASS
       - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
       - ./deploy.sh $CIRCLE_SHA1
