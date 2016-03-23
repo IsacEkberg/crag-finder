@@ -2,7 +2,7 @@
 # Python 3.4 | Django
 
 FROM python:3.4
-MAINTAINER Glyn Jackson (me@glynjackson.org)
+MAINTAINER Isac Ekberg (isac.ekberg@gmail.com)
 
 ##############################################################################
 # Environment variables

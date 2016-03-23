@@ -1,3 +1,5 @@
+static_content
+
 *.pyc
 *.pyo
 .installed.cfg
