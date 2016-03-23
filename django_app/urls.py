@@ -23,7 +23,7 @@ from .views import development_index, development_api_mock
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url('^api/', view=development_api_mock, name="development api")
+    url(r'^api/', view=development_api_mock, name="development api")
 ]
 
 
