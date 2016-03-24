@@ -3,3 +3,4 @@ gunicorn>=19.4.3,<19.4.99
 gevent==1.1a2
 django-storages>=1.4,<1.4.99
 boto==2.39.0
+djangorestframework>=3.3.3,<3.3.99

@@ -15,7 +15,7 @@ Including another URLconf
     3. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
 from django.contrib.staticfiles import views
-from django.conf.urls import url
+from django.conf.urls import url, include
 from django.contrib import admin
 from django.conf import settings
 
@@ -23,7 +23,7 @@ from .views import development_index, development_api_mock
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^api/', view=development_api_mock, name="development api")
+    url(r'^api/', include('django_api.urls'))
 ]
 
 
