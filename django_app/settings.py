@@ -16,20 +16,11 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Determine the running environment. Used determine other settings.
-ON_AWS = False  # A docker container running on AWS.
-LOCAL_DOCKER = False  # A docker container running locally.
-LOCAL_DEV = False  # Running a local django dev server.
+LOCAL_DOCKER = 'LOCAL_RUNNING_DOCKER' in os.environ # A docker container running locally.
+ON_AWS = 'ON_AWS' in os.environ  # A docker container running on AWS.
 
-DOCKER = 'DOCKER_CONTAINER' in os.environ  # If false is it running on Djangos development server.
-
-if DOCKER and 'LOCAL_RUNNING_DOCKER' in os.environ:
-    LOCAL_DOCKER = True
-
-elif DOCKER and 'LOCAL_RUNNING_DOCKER' not in os.environ:
-    ON_AWS = True
-
-elif not DOCKER and 'LOCAL_RUNNING_DOCKER' not in os.environ:
-    LOCAL_DEV = True
+if not LOCAL_DOCKER and not ON_AWS:
+    LOCAL_DEV = True # Running a local django dev server.
 
 
 # Quick-start development settings - unsuitable for production
