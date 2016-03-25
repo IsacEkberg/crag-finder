@@ -50,13 +50,38 @@ RUN mkdir -p /var/log/supervisor
 ADD ./supervisor_conf.d/webapp.conf /etc/supervisor/conf.d/webapp.conf
 
 ##############################################################################
+# Install node and npm: https://github.com/nodesource/distributions
+##############################################################################
+# Install nodejs:
+RUN curl -sL https://deb.nodesource.com/setup_5.x | bash -
+RUN apt-get install -y nodejs
+# Update npm:
+# RUN npm install npm -g
+
+##############################################################################
 # Install dependencies and run scripts.
 ##############################################################################
+RUN npm install -g ember-cli@2.4
+RUN npm install -g bower
 
-ADD mysite.tar      /var/projects/mysite
+# Hopefully caches... Might do the same to npm & bower if it works.
+ADD requirements.txt    /var/projects/mysite/requirements.txt
 WORKDIR /var/projects/mysite
 RUN pip install -r requirements.txt
 
+#ADD ember_app   /var/projects/mysite
+ADD ember_app/.bowerrc      /var/projects/mysite/ember_app/.bowerrc
+ADD ember_app/bower.json    /var/projects/mysite/ember_app/bower.json
+ADD ember_app/package.json  /var/projects/mysite/ember_app/package.json
+
+WORKDIR /var/projects/mysite/ember_app
+RUN npm install
+RUN bower install --allow-root
+
+ADD mysite.tar      /var/projects/mysite
+RUN ember build -prod
+
+WORKDIR /var/projects/mysite
 ##############################################################################
 # Run start.sh script when the container starts.
 # Note: If you run migrations etc outside CMD, envs won't be available!
