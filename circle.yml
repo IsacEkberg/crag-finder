@@ -7,7 +7,10 @@ machine:
 dependencies:
   pre:
     - pip install awscli
-    - requirements.txt docker/requirements.txt
+    - cp requirements.txt docker/requirements.txt
+    - cp ember_app/.bowerrc docker/ember_app/.bowerrc
+    - cp ember_app/bower.json docker/ember_app/bower.json
+    - cp ember_app/package.json docker/ember_app/package.json
     - git archive -o docker/mysite.tar HEAD
     - docker build -t cragfinder/development:$CIRCLE_SHA1 --rm docker
     - rm -f docker/mysite.tar
