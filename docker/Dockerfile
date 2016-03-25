@@ -79,7 +79,7 @@ RUN npm install
 RUN bower install --allow-root
 
 ADD mysite.tar      /var/projects/mysite
-RUN ember build -prod
+RUN ember build -environment production
 
 WORKDIR /var/projects/mysite
 ##############################################################################
