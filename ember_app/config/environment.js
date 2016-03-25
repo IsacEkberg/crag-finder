@@ -47,6 +47,9 @@ module.exports = function(environment) {
   if (environment === 'production') {
     ENV.APP.API_HOST = 'http://d28my8itslow12.cloudfront.net';
     ENV.APP.API_NAMESPACE = 'api/v1';
+    ENV['ember-cli-mirage'] = {
+      enabled: false
+    };
   }
 
   return ENV;
