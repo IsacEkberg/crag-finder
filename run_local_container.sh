@@ -8,6 +8,7 @@ git archive -o docker/mysite.tar HEAD
 docker build -t cragfinder/local:latest -t cragfinder/local:1.0 --rm docker
 rm -f docker/mysite.tar
 rm docker/requirements.txt
-echo docker run --env-file docker/local_env.conf -p 7331:8002 cragfinder/local:latest
+rm -dr docker/ember_app
+docker run --env-file docker/local_env.conf -p 7331:8002 cragfinder/local:latest
 
 echo "The container is then available at localhost:7331"
