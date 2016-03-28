@@ -8,6 +8,21 @@ https://docs.djangoproject.com/en/1.9/topics/settings/
 
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.9/ref/settings/
+
+Environment variables to be set:
+
+___Local dev server___
+- None?
+
+___Local Docker___
+
+
+___CircleCI___
+
+
+___AWS___
+
+
 """
 
 import os
@@ -16,12 +31,12 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Determine the running environment. Used determine other settings.
-LOCAL_DOCKER = 'LOCAL_RUNNING_DOCKER' in os.environ # A docker container running locally.
+ON_LOCAL_DOCKER = 'LOCAL_RUNNING_DOCKER' in os.environ # A docker container running locally.
 ON_AWS = 'ON_AWS' in os.environ  # A docker container running on AWS.
-
-LOCAL_DEV = False
-if (not LOCAL_DOCKER) and (not ON_AWS):
-    LOCAL_DEV = True  # Running a local django dev server.
+ON_CIRCLECI = 'CIRCLECI' in os.environ  # Running on circleCI
+ON_LOCAL_DEV = False
+if (not ON_LOCAL_DOCKER) and (not ON_AWS):
+    ON_LOCAL_DEV = True  # Running a local django dev server.
 
 
 # Quick-start development settings - unsuitable for production
@@ -85,14 +100,49 @@ WSGI_APPLICATION = 'django_app.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
+# Case 1: Running dev server = Iportalen-way
+# Case 2: Running local docker = Do sqlite?
+# Case 3: CircleCI = Use given test database.
+# Case 4: On AWS = Use RDS mysql and env variables.
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db', 'db.sqlite3'),
+if ON_LOCAL_DEV:
+    from django_app.dev_settings import DEV_DATABASE
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': DEV_DATABASE["db_name"],
+            'PORT': DEV_DATABASE["port"],
+            'HOST': DEV_DATABASE["host"],
+            'USER': DEV_DATABASE["user"],
+            'PASSWORD': DEV_DATABASE["password"]
+        }
     }
-}
-
+elif ON_LOCAL_DOCKER:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db', 'db.sqlite3'),
+        }
+    }
+elif ON_CIRCLECI:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'circle_test',
+            'USER': 'ubuntu'
+        }
+    }
+elif ON_AWS:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.environ['RDS_DB_NAME'],
+            'USER': os.environ['RDS_USERNAME'],
+            'PASSWORD': os.environ['RDS_PASSWORD'],
+            'HOST': os.environ['RDS_HOSTNAME'],
+            'PORT': os.environ['RDS_PORT'],
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
@@ -132,7 +182,7 @@ USE_TZ = True
 
 STATIC_URL = '/django_static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "ember_app/dist")]
-if LOCAL_DEV or LOCAL_DOCKER:
+if ON_LOCAL_DEV or ON_LOCAL_DOCKER:
     STATIC_ROOT = os.path.join(BASE_DIR, "static_content")
 
 elif ON_AWS:

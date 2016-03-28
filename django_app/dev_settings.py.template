@@ -1,0 +1,7 @@
+DEV_DATABASE = {
+    "db_name": "<database name>",
+    "port": '<PORT>',  # Usually '3306'
+    "user": '<mysql user>',
+    "password": '<mysql user pq>',
+    "host": '<host>',  # Normally 'localhost'
+}
