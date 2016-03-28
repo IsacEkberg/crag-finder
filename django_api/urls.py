@@ -4,10 +4,10 @@ from django_api import views
 
 router = DefaultRouter()
 router.register(r'rentals', views.RentalViewSet)
-router.register(r'area', views.AreaViewSet)
-router.register(r'rockface', views.RockFaceViewSet)
-router.register(r'route', views.RouteViewSet)
-router.register(r'parking', views.ParkingViewSet)
+router.register(r'areas', views.AreaViewSet)
+router.register(r'rockfaces', views.RockFaceViewSet)
+router.register(r'routes', views.RouteViewSet)
+router.register(r'parkings', views.ParkingViewSet)
 
 urlpatterns = [
     url(r'^v1/', include(router.urls)),

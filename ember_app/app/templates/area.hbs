@@ -1,0 +1,16 @@
+<h1>{{model.name}}</h1>
+
+<div class="row">
+{{#each model.rockfaces as |rockface|}}
+    <div class="col-sm-6 col-md-4">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h3 class="panel-title">{{ rockface.name }}</h3>
+            </div>
+            <div class="panel-body">
+              {{#link-to "rockface" rockface}}Länk{{/link-to}}
+            </div>
+        </div>
+    </div>
+{{/each}}
+</div>

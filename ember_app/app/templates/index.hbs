@@ -1,12 +1,23 @@
-<h1>Welcome to Super Rentals</h1>
+<h1>Welcome to Crag Finder</h1>
 
-<p>We hope you find exactly what you're looking for in a place to stay.</p>
-
+<p>Find crag close to you!</p>
+<!--
 {{filter-listing filteredList=filteredList autoComplete=(action 'autoComplete') search=(action 'search')}}
+-->
+<div class="row">
 
-{{#each model as |rentalUnit|}}
-  {{rental-listing rental=rentalUnit}}
+{{#each model as |climbingArea|}}
+    <div class="col-sm-6 col-md-4">
+      <div class="panel panel-primary">
+          <div class="panel-heading">
+              <h3 class="panel-title">{{ climbingArea.name }}</h3>
+          </div>
+          <div class="panel-body">
+              {{#link-to "area" climbingArea}}Länk{{/link-to}}
+          </div>
+      </div>
+    </div>
 {{/each}}
+</div>
 
-{{#link-to "about"}}About{{/link-to}}
-{{#link-to "contact"}}Click here to contact us.{{/link-to}}
+<p>Very good price!</p>
