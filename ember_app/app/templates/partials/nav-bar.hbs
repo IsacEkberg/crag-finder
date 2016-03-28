@@ -12,13 +12,9 @@
 
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-2">
             <ul class="nav navbar-nav">
-                {{#each page_array as |page|}}
-
-                  <li>
-                    {{#link-to page }} {{page}} {{/link-to}}
-                  </li>
-
-                {{/each}}
+              {{#nav-bar-link 'index'}}Home{{/nav-bar-link}}
+              {{#nav-bar-link 'about'}}About{{/nav-bar-link}}
+              {{#nav-bar-link 'contact'}}Contact{{/nav-bar-link}}
             </ul>
         </div>
     </div>
