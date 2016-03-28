@@ -35,7 +35,7 @@ ON_LOCAL_DOCKER = 'LOCAL_RUNNING_DOCKER' in os.environ # A docker container runn
 ON_AWS = 'ON_AWS' in os.environ  # A docker container running on AWS.
 ON_CIRCLECI = 'CIRCLECI' in os.environ  # Running on circleCI
 ON_LOCAL_DEV = False
-if (not ON_LOCAL_DOCKER) and (not ON_AWS):
+if (not ON_LOCAL_DOCKER) and (not ON_AWS) and (not ON_CIRCLECI):
     ON_LOCAL_DEV = True  # Running a local django dev server.
 
 
