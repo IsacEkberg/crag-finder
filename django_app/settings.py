@@ -143,6 +143,8 @@ elif ON_AWS:
     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
     AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
 
+    AWS_PRELOAD_METADATA = True  # Only update files which are modified.
+
     S3_URL = 'https://{0}.s3.amazonaws.com/'.format(AWS_STORAGE_BUCKET_NAME)
     STATIC_URL = os.environ.get('STATIC_URL', S3_URL + 'static/')
 
