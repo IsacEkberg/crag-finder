@@ -109,7 +109,26 @@ WSGI_APPLICATION = 'django_app.wsgi.application'
 # Case 3: CircleCI = Use given test database.
 # Case 4: On AWS = Use RDS mysql and env variables.
 
-if ON_LOCAL_DEV:
+if ON_CIRCLECI:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'circle_test',
+            'USER': 'ubuntu'
+        }
+    }
+elif ON_AWS:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.environ['RDS_DB_NAME'],
+            'USER': os.environ['RDS_USERNAME'],
+            'PASSWORD': os.environ['RDS_PASSWORD'],
+            'HOST': os.environ['RDS_HOSTNAME'],
+            'PORT': os.environ['RDS_PORT'],
+        }
+    }
+else:
     try:
         from django_app.dev_settings import DEV_DATABASE  # Don't forget to set credentials!
         DATABASES = {
@@ -130,33 +149,6 @@ if ON_LOCAL_DEV:
             'NAME': os.path.join(BASE_DIR, 'db', 'db.sqlite3'),
             }
         }
-
-elif ON_LOCAL_DOCKER or ON_CIRCLE_DOCKER:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db', 'db.sqlite3'),
-        }
-    }
-elif ON_CIRCLECI:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'circle_test',
-            'USER': 'ubuntu'
-        }
-    }
-elif ON_AWS:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.environ['RDS_DB_NAME'],
-            'USER': os.environ['RDS_USERNAME'],
-            'PASSWORD': os.environ['RDS_PASSWORD'],
-            'HOST': os.environ['RDS_HOSTNAME'],
-            'PORT': os.environ['RDS_PORT'],
-        }
-    }
 
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
