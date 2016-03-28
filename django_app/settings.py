@@ -12,13 +12,15 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 Environment variables to be set:
 
 ___Local dev server___
-- None?
+    --
 
 ___Local Docker___
-
+    --
 
 ___CircleCI___
-
+DOCKER_USER
+DOCKER_PASSWORD
+DOCKER_EMAIL
 
 ___AWS___
 
@@ -108,17 +110,27 @@ WSGI_APPLICATION = 'django_app.wsgi.application'
 # Case 4: On AWS = Use RDS mysql and env variables.
 
 if ON_LOCAL_DEV:
-    from django_app.dev_settings import DEV_DATABASE  # Don't forget to set credentials!
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': DEV_DATABASE["db_name"],
-            'PORT': DEV_DATABASE["port"],
-            'HOST': DEV_DATABASE["host"],
-            'USER': DEV_DATABASE["user"],
-            'PASSWORD': DEV_DATABASE["password"]
+    try:
+        from django_app.dev_settings import DEV_DATABASE  # Don't forget to set credentials!
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.mysql',
+                'NAME': DEV_DATABASE["db_name"],
+                'PORT': DEV_DATABASE["port"],
+                'HOST': DEV_DATABASE["host"],
+                'USER': DEV_DATABASE["user"],
+                'PASSWORD': DEV_DATABASE["password"]
+            }
         }
-    }
+    except ImportError:
+        print("########FALLING BACK TO SQLITE3, SET YOUR DEV_DATABASE!########")
+        DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db', 'db.sqlite3'),
+            }
+        }
+
 elif ON_LOCAL_DOCKER or ON_CIRCLE_DOCKER:
     DATABASES = {
         'default': {

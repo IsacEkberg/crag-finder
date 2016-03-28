@@ -23,7 +23,7 @@ dependencies:
 
 test:
   post:
-    - docker run --env-file docker/circle_env.conf -d -p 3000:8002 -e "SECRET_KEY_BASE=abcd1234" cragfinder/development:$CIRCLE_SHA1; sleep 10
+    - docker run --env CIRCLE_RUNNING_DOCKER="1" -d -p 3000:8002 -e "SECRET_KEY_BASE=abcd1234" cragfinder/development:$CIRCLE_SHA1; sleep 10
     - wget -O- --retry-connrefused --waitretry=5 --read-timeout=20 --timeout=15 -t 6 http://localhost:3000 > /dev/null
 
 deployment:
