@@ -31,7 +31,11 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Determine the running environment. Used determine other settings.
-ON_LOCAL_DOCKER = 'LOCAL_RUNNING_DOCKER' in os.environ # A docker container running locally.
+ON_LOCAL_DOCKER = 'LOCAL_RUNNING_DOCKER' in os.environ  # A docker container running locally.
+ON_CIRCLE_DOCKER = 'CIRCLE_RUNNING_DOCKER' in os.environ  # a docker container on CircleCI.
+if ON_CIRCLE_DOCKER:
+    ON_LOCAL_DOCER = True  # TODO: Fix this mess.
+
 ON_AWS = 'ON_AWS' in os.environ  # A docker container running on AWS.
 ON_CIRCLECI = 'CIRCLECI' in os.environ  # Running on circleCI
 ON_LOCAL_DEV = False
