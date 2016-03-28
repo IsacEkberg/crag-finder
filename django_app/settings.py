@@ -33,8 +33,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Determine the running environment. Used determine other settings.
 ON_LOCAL_DOCKER = 'LOCAL_RUNNING_DOCKER' in os.environ  # A docker container running locally.
 ON_CIRCLE_DOCKER = 'CIRCLE_RUNNING_DOCKER' in os.environ  # a docker container on CircleCI.
-if ON_CIRCLE_DOCKER:
-    ON_LOCAL_DOCER = True  # TODO: Fix this mess.
 
 ON_AWS = 'ON_AWS' in os.environ  # A docker container running on AWS.
 ON_CIRCLECI = 'CIRCLECI' in os.environ  # Running on circleCI
@@ -110,7 +108,7 @@ WSGI_APPLICATION = 'django_app.wsgi.application'
 # Case 4: On AWS = Use RDS mysql and env variables.
 
 if ON_LOCAL_DEV:
-    from django_app.dev_settings import DEV_DATABASE
+    from django_app.dev_settings import DEV_DATABASE  # Don't forget to set credentials!
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
@@ -121,7 +119,7 @@ if ON_LOCAL_DEV:
             'PASSWORD': DEV_DATABASE["password"]
         }
     }
-elif ON_LOCAL_DOCKER:
+elif ON_LOCAL_DOCKER or ON_CIRCLE_DOCKER:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
