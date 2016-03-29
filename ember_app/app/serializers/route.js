@@ -2,6 +2,6 @@ import DRFSerializer from './drf';
 
 export default DRFSerializer.extend({
   attrs: {
-    route: {embedded: 'always' }
+    rockface: {embedded: 'always' }
   }
 });
