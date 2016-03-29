@@ -61,7 +61,7 @@ class RockFace(models.Model):
 
 class Parking(models.Model):
     area = models.ForeignKey(Area, related_name="parking")
-    position = models.PositiveIntegerField(default=5)  # TODO: Implement a soultion.
+    position = models.PositiveIntegerField(default=5)  # TODO: Implement a solution.
 
 
 class Route(models.Model):
