@@ -13,6 +13,10 @@ module.exports = function(defaults) {
   });
 
   app.import('bower_components/bootstrap-sass/assets/javascripts/bootstrap.js');
+  app.import('bower_components/font-awesome/css/font-awesome.min.css');
+  app.import('bower_components/font-awesome/fonts/fontawesome-webfont.woff', {destDir: 'fonts'});
+  app.import('bower_components/font-awesome/fonts/fontawesome-webfont.woff2', {destDir: 'fonts'});
+  app.import('bower_components/font-awesome/fonts/fontawesome-webfont.ttf', {destDir: 'fonts'});
 
   // Use `app.import` to add additional libraries to the generated
   // output files.
