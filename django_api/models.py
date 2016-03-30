@@ -49,7 +49,7 @@ class RockFace(models.Model):
     """
     name = models.CharField(max_length=150)
     area = models.ForeignKey(Area, related_name="rockfaces")
-    #position = GeopositionField()
+    geo_data = models.CharField(max_length=3000, blank=False, null=True)
 
     @property
     def routes(self):
@@ -192,3 +192,4 @@ class Route(models.Model):
 
     def __str__(self):
         return self.name + ' (' + self.rock_face.area.name + ')'
+

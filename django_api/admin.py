@@ -19,6 +19,12 @@ class RockFaceAdmin(admin.ModelAdmin):
     list_display = ('name',)
     list_display_links = ('name',)
 
+    class Media:
+        css = {
+            "all": ("django_api/gmaps_admin.css", )
+        }
+        js = ("django_api/gmaps_admin.js", )
+
 
 class RockFaceInline(admin.StackedInline):
     model = RockFace
@@ -38,6 +44,6 @@ class RentalAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Area)
-admin.site.register(RockFace)
+admin.site.register(RockFace, RockFaceAdmin)
 admin.site.register(Route)
 admin.site.register(Rental)
