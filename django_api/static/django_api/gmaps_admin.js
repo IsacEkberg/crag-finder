@@ -84,7 +84,7 @@ if(!$){
                 var value = value2.substring(1, value2.length-1);
                 vals2 = value.split(", ");
                 if(vals2 == "") {return;}
-                arr2.push({lat:parseInt(vals2[0]), lng:parseInt(vals2[1])})
+                arr2.push({lat:parseFloat(vals2[0]), lng:parseFloat(vals2[1])})
             });
             console.log(arr2);
             return arr2;
