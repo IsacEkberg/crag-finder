@@ -3,7 +3,6 @@ from rest_framework.routers import DefaultRouter
 from django_api import views
 
 router = DefaultRouter()
-router.register(r'rentals', views.RentalViewSet)
 router.register(r'areas', views.AreaViewSet)
 router.register(r'rockfaces', views.RockFaceViewSet)
 router.register(r'routes', views.RouteViewSet)

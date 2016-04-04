@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django_api.models import Rental, Area, RockFace, Route, Parking
+from django_api.models import Area, RockFace, Route, Parking
 
 
 class RoutesInline(admin.TabularInline):
@@ -46,4 +46,3 @@ class RentalAdmin(admin.ModelAdmin):
 admin.site.register(Area)
 admin.site.register(RockFace, RockFaceAdmin)
 admin.site.register(Route)
-admin.site.register(Rental)

@@ -1,11 +1,5 @@
 from rest_framework import serializers
-from .models import Rental, Area, RockFace, Route, Parking
-
-
-class RentalSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Rental
-        fields = ('id', 'title', 'owner', 'city', 'type', 'image', 'bedrooms')
+from .models import Area, RockFace, Route, Parking
 
 
 class AreaSerializer(serializers.ModelSerializer):

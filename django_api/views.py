@@ -1,14 +1,8 @@
 from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 
-from .models import Rental, Area, Parking, Route, RockFace
-from .serializers import RentalSerializer, AreaSerializer, RockFaceSerializer, ParkingSerializer, RouteSerializer
-
-
-class RentalViewSet(viewsets.ModelViewSet):
-    queryset = Rental.objects.all()
-    serializer_class = RentalSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+from .models import Area, Parking, Route, RockFace
+from .serializers import AreaSerializer, RockFaceSerializer, ParkingSerializer, RouteSerializer
 
 
 class AreaViewSet(viewsets.ModelViewSet):
