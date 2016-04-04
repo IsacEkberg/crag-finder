@@ -23,7 +23,7 @@ class RockFaceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RockFace
-        fields = ('id', 'name', 'routes', 'area')
+        fields = ('id', 'name', 'routes', 'area', 'geo_data')
 
 
 class ParkingSerializer(serializers.ModelSerializer):
