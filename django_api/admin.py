@@ -38,7 +38,6 @@ class AreaAdmin(admin.ModelAdmin):
     inlines = [RockFaceInline, ParkingInline]
 
 
-
 class RentalAdmin(admin.ModelAdmin):
     pass
 

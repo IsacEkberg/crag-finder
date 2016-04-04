@@ -8,7 +8,7 @@ class AreaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Area
-        fields = ('id', 'name', 'rockfaces', 'parking')
+        fields = ('id', 'name', 'rockfaces', 'parking', 'short_description', 'long_description', 'road_description')
         read_only_fields = ('id', 'name')
 
 
@@ -17,7 +17,7 @@ class RockFaceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RockFace
-        fields = ('id', 'name', 'routes', 'area', 'geo_data')
+        fields = ('id', 'name', 'routes', 'area', 'geo_data', 'short_description', 'long_description')
 
 
 class ParkingSerializer(serializers.ModelSerializer):

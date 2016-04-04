@@ -6,6 +6,9 @@ class Area(models.Model):
     A climbing area. Contains several crags. A parking or more.
     """
     name = models.CharField(max_length=150, unique=True)
+    short_description = models.CharField(max_length=300, null=True, blank=False)
+    long_description = models.CharField(max_length=4000, null=True, blank=False)
+    road_description = models.CharField(max_length=4000, null=True, blank=False)
 
     @property
     def faces(self):
@@ -14,21 +17,6 @@ class Area(models.Model):
     @property
     def routes(self):
         return Route.objects.filter(rock_face__exact=RockFace.objects.filter(area__exact=self)).count()
-
-   # @property
-   # def position(self):
-   #     faces = RockFace.objects.filter(area__exact=self)
-   #     lat = 0
-   #     lon = 0
-   #     n = 0
-   #     for face in faces:
-   #         lat += face.position.latitude
-   #         lon += face.position.longitude
-   #         n += 1
-   #     if n != 0:
-   #         lat /= n
-   #         lon /= n
-   #     return lat, lon
 
     def __str__(self):
         return self.name
@@ -41,6 +29,9 @@ class RockFace(models.Model):
     name = models.CharField(max_length=150)
     area = models.ForeignKey(Area, related_name="rockfaces")
     geo_data = models.CharField(max_length=3000, blank=False, null=True)
+
+    short_description = models.CharField(max_length=300, null=True, blank=True)
+    long_description = models.CharField(max_length=4000, null=True, blank=True)
 
     @property
     def routes(self):
@@ -61,6 +52,10 @@ class Route(models.Model):
     """
     name = models.CharField(max_length=150)
     rock_face = models.ForeignKey(RockFace, related_name="routes")
+    short_description = models.CharField(max_length=160, blank=True, null=True)
+    first_ascent_name = models.CharField(max_length=160, blank=True, null=True)
+    first_ascent_year = models.PositiveIntegerField(blank=True, null=True)
+    length = models.PositiveIntegerField(blank=True, null=True)
 
     #Grade constans
     PROJECT = 'no'
