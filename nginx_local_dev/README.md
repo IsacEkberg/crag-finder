@@ -4,14 +4,20 @@ and the ember app. The reason is to avoid CORS.
  
 Make sure Nginx is installed (or install it):
 nginx -v
-sudo apg-get install nginx
+sudo apt-get install nginx -y
 
 Copy the file nginx.conf in this folder to /etc/nginx/ (On Ubuntu)
-
+'sudo cp nginx_local_dev/nginx.conf /etc/nginx/'
 Restart the service:
-sudo services nginx restart
+sudo service nginx restart
 
 Now to access the app:
+```bash
+cd ember_app/
+npm install
+bower install
+ember serve
+```
 - Run ember with: 'ember serve' on 127.0.0.1:4200
 - Run django with: 'python manage.py runserver' on 127.0.0.1:8000
 
