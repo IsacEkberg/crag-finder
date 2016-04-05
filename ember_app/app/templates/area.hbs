@@ -1,21 +1,40 @@
-<h1>{{model.name}}</h1>
-<div class="row">
-    <div class="col-xs-12">
-        {{google-maps area=model}}
+{{outlet}}
+<h1>{{ model.name }}</h1>
+<ul class="nav nav-tabs">
+    <li class="active"><a href="#description" data-toggle="tab" aria-expanded="false">Beskrivning</a></li>
+    <li><a href="#direction" data-toggle="tab" aria-expanded="false">Vägbeskrivning</a></li>
+    <li><a href="#routes" data-toggle="tab" aria-expanded="false">Leder</a></li>
+</ul>
+<div class="tab-content">
+    <div class="tab-pane fade active in" id="description">
+      <p>{{model.short_description}}</p>
+      <p>{{model.long_description}}</p>
     </div>
-</div>
-<div class="row">
-{{#each model.rockfaces as |rockface|}}
-    <div class="col-sm-6 col-md-4">
-        <div class="panel panel-primary">
-            <div class="panel-heading">
-                <h3 class="panel-title">{{ rockface.name }}</h3>
-            </div>
-            <div class="panel-body">
-              {{#link-to "rockface" rockface}}Länk{{/link-to}}
-              <p>{{ rockface.geo_data }}</p>
-            </div>
-        </div>
+    <div class="tab-pane fade" id="direction">
+      <p>{{model.road_description}}</p>
+      {{google-maps area=model}}
+        <!--TODO: Make sure gmaps loads... -->
     </div>
-{{/each}}
+
+    <div class="tab-pane fade" id="routes">
+        {{#if model.severalRockfaces}}
+          {{#each model.rockfaces as |rockface|}}
+            <h2>{{rockface.name}}</h2>
+            <ol>
+              {{#each rockface.routes as |route|}}
+                <li>{{route.name}}</li>
+              {{/each}}
+            </ol>
+          {{/each}}
+        {{else}}
+          {{#each model.rockfaces as |rockface|}}
+              <ol>
+                {{#each rockface.routes as |route|}}
+                    <li>{{route.name}}</li>
+                {{/each}}
+              </ol>
+          {{/each}}
+        {{/if}}
+    </div>
+
 </div>

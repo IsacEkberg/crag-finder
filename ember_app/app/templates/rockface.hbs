@@ -1,6 +1,6 @@
 <h1>{{model.name}}</h1>
 <ul>
     {{#each model.routes as |route|}}
-      <li>{{route.name}}</li>
+      {{route-list route=route}}
     {{/each}}
 </ul>

@@ -31,4 +31,4 @@ class RouteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Route
-        fields = ('id', 'name', 'rock_face', 'grade', 'type')
+        fields = ('id', 'name', 'rock_face', 'grade', 'type', 'short_description', 'first_ascent_name', 'first_ascent_year', 'length')

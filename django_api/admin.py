@@ -4,7 +4,7 @@ from django_api.models import Area, RockFace, Route, Parking
 
 class RoutesInline(admin.TabularInline):
     model = Route
-    fields = ('name', 'grade', 'type')
+    fields = ('name', 'grade', 'type', 'short_description', 'length', 'first_ascent_name', 'first_ascent_year')
 
 
 class ParkingInline(admin.TabularInline):

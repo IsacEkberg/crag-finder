@@ -5,5 +5,8 @@ export default DS.Model.extend({
   no_routes: DS.attr(),
   area: DS.belongsTo('area'),
   routes: DS.hasMany('route'),
-  geo_data: DS.attr()
+  geo_data: DS.attr(),
+  short_description: DS.attr(),
+  long_description: DS.attr()
+
 });
