@@ -6,7 +6,7 @@ from django.contrib.auth.models import User, Group
 from django.contrib.admin import AdminSite
 
 
-def in_a_club(user):
+def in_any_club(user):
     if user.pk in ClubAdmin.objects.all().values_list('user_id', flat=True):
         return True
     return False
@@ -44,10 +44,10 @@ class RoutesInline(admin.TabularInline):
     fields = ('name', 'grade', 'type', 'short_description', 'length', 'first_ascent_name', 'first_ascent_year')
 
     def has_module_permission(self, request):
-        return request.user.is_superuser or in_a_club(request.user)
+        return request.user.is_superuser or in_any_club(request.user)
 
     def has_add_permission(self, request):
-        return request.user.is_superuser or in_a_club(request.user)
+        return request.user.is_superuser or in_any_club(request.user)
 
     def has_delete_permission(self, request, obj=None):
         if request.user.is_superuser:
@@ -61,7 +61,7 @@ class RoutesInline(admin.TabularInline):
             return True
         if obj:
             return in_club(obj.area.clubs.all(), request.user)
-        return in_a_club(request.user) or request.user.is_superuser
+        return in_any_club(request.user) or request.user.is_superuser
 
 
 class ParkingInline(admin.TabularInline):
@@ -70,10 +70,10 @@ class ParkingInline(admin.TabularInline):
     extra = 0
 
     def has_module_permission(self, request):
-        return request.user.is_superuser or in_a_club(request.user)
+        return request.user.is_superuser or in_any_club(request.user)
 
     def has_add_permission(self, request):
-        return request.user.is_superuser or in_a_club(request.user)
+        return request.user.is_superuser or in_any_club(request.user)
 
     def has_delete_permission(self, request, obj=None):
         if request.user.is_superuser:
@@ -87,7 +87,7 @@ class ParkingInline(admin.TabularInline):
             return True
         if obj:
             return in_club(obj.clubs.all(), request.user)
-        return in_a_club(request.user)
+        return in_any_club(request.user)
 
 
 class RockFaceAdmin(admin.ModelAdmin):
@@ -104,10 +104,10 @@ class RockFaceAdmin(admin.ModelAdmin):
         js = ("django_api/gmaps_admin.js", )
 
     def has_module_permission(self, request):
-        return request.user.is_superuser or in_a_club(request.user)
+        return request.user.is_superuser or in_any_club(request.user)
 
     def has_add_permission(self, request):
-        return request.user.is_superuser or in_a_club(request.user)
+        return request.user.is_superuser or in_any_club(request.user)
 
     def has_delete_permission(self, request, obj=None):
         if request.user.is_superuser:
@@ -121,7 +121,7 @@ class RockFaceAdmin(admin.ModelAdmin):
             return True
         if obj:
             return in_club(obj.area.clubs.all(), request.user)
-        return in_a_club(request.user)
+        return in_any_club(request.user)
 
     def get_queryset(self, request):
         qs = super(RockFaceAdmin, self).get_queryset(request)
@@ -137,10 +137,10 @@ class RockFaceInline(admin.StackedInline):
     extra = 0
 
     def has_module_permission(self, request):
-        return request.user.is_superuser or in_a_club(request.user)
+        return request.user.is_superuser or in_any_club(request.user)
 
     def has_add_permission(self, request):
-        return request.user.is_superuser or in_a_club(request.user)
+        return request.user.is_superuser or in_any_club(request.user)
 
     def has_delete_permission(self, request, obj=None):
         if request.user.is_superuser:
@@ -154,7 +154,7 @@ class RockFaceInline(admin.StackedInline):
             return True
         if obj:
             return in_club(obj.clubs.all(), request.user)
-        return in_a_club(request.user)
+        return in_any_club(request.user)
 
 
 class AreaAdmin(admin.ModelAdmin):
@@ -165,10 +165,10 @@ class AreaAdmin(admin.ModelAdmin):
     inlines = [RockFaceInline,]  # TODO: add parking inline
 
     def has_module_permission(self, request):
-        return request.user.is_superuser or in_a_club(request.user)
+        return request.user.is_superuser or in_any_club(request.user)
 
     def has_add_permission(self, request):
-        return request.user.is_superuser or in_a_club(request.user)
+        return request.user.is_superuser or in_any_club(request.user)
 
     def has_delete_permission(self, request, obj=None):
         if request.user.is_superuser:
@@ -182,7 +182,7 @@ class AreaAdmin(admin.ModelAdmin):
             return True
         if obj:
             return in_club(obj.clubs.all(), request.user)
-        return in_a_club(request.user)
+        return in_any_club(request.user)
 
     def get_queryset(self, request):
         qs = super(AreaAdmin, self).get_queryset(request)
@@ -209,7 +209,7 @@ class AdminClub(admin.ModelAdmin):
 
     def has_module_permission(self, request):
         # stupid check django performs to not get 403 when clicking on app label
-        return in_a_club(request.user) or request.user.is_superuser
+        return in_any_club(request.user) or request.user.is_superuser
 
 
 cragfinder_admin_site.register(Group)
