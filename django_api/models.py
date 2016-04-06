@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.auth.models import User
 
 class Area(models.Model):
     """
@@ -9,6 +9,7 @@ class Area(models.Model):
     short_description = models.CharField(max_length=300, null=True, blank=False)
     long_description = models.CharField(max_length=4000, null=True, blank=False)
     road_description = models.CharField(max_length=4000, null=True, blank=False)
+    clubs = models.ManyToManyField('Club')
 
     @property
     def faces(self):
@@ -179,3 +180,14 @@ class Route(models.Model):
     def __str__(self):
         return self.name + ' (' + self.rock_face.area.name + ')'
 
+
+class Club(models.Model):
+    name = models.CharField(max_length=255)
+    address = models.TextField()
+    email = models.EmailField()
+    info = models.TextField()
+
+
+class ClubAdmin(models.Model):
+    club = models.ForeignKey(Club)
+    user = models.ForeignKey(User)
