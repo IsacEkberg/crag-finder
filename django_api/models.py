@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class Area(models.Model):
     """
     A climbing area. Contains several crags. A parking or more.

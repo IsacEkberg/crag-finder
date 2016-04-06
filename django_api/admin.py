@@ -13,8 +13,14 @@ def in_a_club(user):
 
 
 class MyAdminSite(AdminSite):
-    site_title = "test"
-    index_title = "Crag-finder"
+    # Text to put at the end of each page's <title>.
+    site_title = 'Crag-finder admin'
+
+    # Text to put in each page's <h1>.
+    site_header = 'Crag-finder admin'
+
+    # Text to put at the top of the admin index page.
+    index_title = 'Crag-finder admin'
 
     def has_permission(self, request):
         """
@@ -122,7 +128,8 @@ class RockFaceAdmin(admin.ModelAdmin):
         qs = super(RockFaceAdmin, self).get_queryset(request)
         if request.user.is_superuser:
             return qs
-        return qs.filter(Q(area__clubs__id__in=ClubAdmin.objects.filter(user_id=request.user.pk).values_list('club_id', flat=True)))
+        return qs.filter(Q(area__clubs__id__in=ClubAdmin.objects.filter(
+            user_id=request.user.pk).values_list('club_id', flat=True)))
 
 
 class RockFaceInline(admin.StackedInline):
@@ -206,11 +213,13 @@ class AdminClub(admin.ModelAdmin):
     filter = ('name',)
     inlines = [AddClubAdminInline]
 
+    def has_module_permission(self, request):
+        # stupid check django performs to not get 403 when clicking on app label
+        return in_a_club(request.user) or request.user.is_superuser
+
 
 cragfinder_admin_site.register(Group)
 cragfinder_admin_site.register(User)
 cragfinder_admin_site.register(Area, AreaAdmin)
 cragfinder_admin_site.register(RockFace, RockFaceAdmin)
-cragfinder_admin_site.register(Route)
-
 cragfinder_admin_site.register(Club, AdminClub)
