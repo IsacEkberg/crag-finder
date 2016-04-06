@@ -187,6 +187,9 @@ class Club(models.Model):
     email = models.EmailField()
     info = models.TextField()
 
+    def __str__(self):
+        return self.name
+
 
 class ClubAdmin(models.Model):
     club = models.ForeignKey(Club)

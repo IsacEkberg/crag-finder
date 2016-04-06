@@ -16,13 +16,12 @@ Including another URLconf
 """
 from django.contrib.staticfiles import views
 from django.conf.urls import url, include
-from django.contrib import admin
 from django.conf import settings
 
 from .views import development_index, development_api_mock
-
+from django_api.admin import cragfinder_admin_site
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
+    url(r'^admin/', cragfinder_admin_site.urls),
     url(r'^api/', include('django_api.urls'))
 ]
 

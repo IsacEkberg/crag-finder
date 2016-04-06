@@ -1,6 +1,17 @@
 from django.contrib import admin
-from django_api.models import Area, RockFace, Route, Parking
+from django_api.models import Area, RockFace, Route, Parking, ClubAdmin, Club
+from django.contrib.auth.models import User, Group
+from django.contrib.admin import AdminSite
 
+
+class MyAdminSite(AdminSite):
+    def has_permission(self, request):
+        """
+        Removed check for is_staff.
+        """
+        return request.user.is_active
+
+cragfinder_admin_site = MyAdminSite(name='cragfinderadmin')
 
 class RoutesInline(admin.TabularInline):
     model = Route
@@ -41,7 +52,11 @@ class AreaAdmin(admin.ModelAdmin):
 class RentalAdmin(admin.ModelAdmin):
     pass
 
+cragfinder_admin_site.register(Group)
+cragfinder_admin_site.register(User)
+cragfinder_admin_site.register(Area)
+cragfinder_admin_site.register(RockFace, RockFaceAdmin)
+cragfinder_admin_site.register(Route)
 
-admin.site.register(Area)
-admin.site.register(RockFace, RockFaceAdmin)
-admin.site.register(Route)
+cragfinder_admin_site.register(Club)
+cragfinder_admin_site.register(ClubAdmin)

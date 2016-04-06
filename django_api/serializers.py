@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Area, RockFace, Route, Parking
+from .models import Area, RockFace, Route, Parking, Club
 
 
 class AreaSerializer(serializers.ModelSerializer):
@@ -32,3 +32,10 @@ class RouteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Route
         fields = ('id', 'name', 'rock_face', 'grade', 'type', 'short_description', 'first_ascent_name', 'first_ascent_year', 'length')
+
+
+class ClubSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Club
+        fields = ('id', 'name', 'address', 'email', 'info')
