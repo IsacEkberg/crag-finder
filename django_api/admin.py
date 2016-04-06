@@ -12,6 +12,13 @@ def in_a_club(user):
     return False
 
 
+def in_club(clubs, user):
+    for club in clubs:
+        if user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
+            return True
+    return False
+
+
 class MyAdminSite(AdminSite):
     # Text to put at the end of each page's <title>.
     site_title = 'Crag-finder admin'
@@ -37,26 +44,23 @@ class RoutesInline(admin.TabularInline):
     fields = ('name', 'grade', 'type', 'short_description', 'length', 'first_ascent_name', 'first_ascent_year')
 
     def has_module_permission(self, request):
-        return in_a_club(request.user) or request.user.is_superuser
+        return request.user.is_superuser or in_a_club(request.user)
 
     def has_add_permission(self, request):
-        return in_a_club(request.user) or request.user.is_superuser
+        return request.user.is_superuser or in_a_club(request.user)
 
     def has_delete_permission(self, request, obj=None):
         if request.user.is_superuser:
             return True
         if obj:
-            for club in obj.area.clubs.all():
-                if request.user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
-                    return True
+            return in_club(obj.area.clubs.all(), request.user)
         return False
 
     def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
         if obj:
-            for club in obj.area.clubs.all():
-                if request.user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
-                    return True
-            return False or request.user.is_superuser
+            return in_club(obj.area.clubs.all(), request.user)
         return in_a_club(request.user) or request.user.is_superuser
 
 
@@ -66,27 +70,24 @@ class ParkingInline(admin.TabularInline):
     extra = 0
 
     def has_module_permission(self, request):
-        return in_a_club(request.user) or request.user.is_superuser
+        return request.user.is_superuser or in_a_club(request.user)
 
     def has_add_permission(self, request):
-        return in_a_club(request.user) or request.user.is_superuser
+        return request.user.is_superuser or in_a_club(request.user)
 
     def has_delete_permission(self, request, obj=None):
         if request.user.is_superuser:
             return True
         if obj:
-            for club in obj.clubs.all():
-                if request.user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
-                    return True
+            return in_club(obj.clubs.all(), request.user)
         return False
 
     def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
         if obj:
-            for club in obj.clubs.all():
-                if request.user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
-                    return True
-            return False or request.user.is_superuser
-        return in_a_club(request.user) or request.user.is_superuser
+            return in_club(obj.clubs.all(), request.user)
+        return in_a_club(request.user)
 
 
 class RockFaceAdmin(admin.ModelAdmin):
@@ -95,6 +96,7 @@ class RockFaceAdmin(admin.ModelAdmin):
     list_display = ('name',)
     list_display_links = ('name',)
     readonly_fields = ['area']
+
     class Media:
         css = {
             "all": ("django_api/gmaps_admin.css", )
@@ -102,34 +104,31 @@ class RockFaceAdmin(admin.ModelAdmin):
         js = ("django_api/gmaps_admin.js", )
 
     def has_module_permission(self, request):
-        return in_a_club(request.user) or request.user.is_superuser
+        return request.user.is_superuser or in_a_club(request.user)
 
     def has_add_permission(self, request):
-        return in_a_club(request.user) or request.user.is_superuser
+        return request.user.is_superuser or in_a_club(request.user)
 
     def has_delete_permission(self, request, obj=None):
         if request.user.is_superuser:
             return True
         if obj:
-            for club in obj.area.clubs.all():
-                if request.user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
-                    return True
+            return in_club(obj.area.clubs.all(), request.user)
         return False
 
     def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
         if obj:
-            for club in obj.area.clubs.all():
-                if request.user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
-                    return True
-            return False or request.user.is_superuser
-        return in_a_club(request.user) or request.user.is_superuser
+            return in_club(obj.area.clubs.all(), request.user)
+        return in_a_club(request.user)
 
     def get_queryset(self, request):
         qs = super(RockFaceAdmin, self).get_queryset(request)
         if request.user.is_superuser:
             return qs
-        return qs.filter(Q(area__clubs__id__in=ClubAdmin.objects.filter(
-            user_id=request.user.pk).values_list('club_id', flat=True)))
+        return qs.filter(
+            Q(area__clubs__id__in=ClubAdmin.objects.filter(user_id=request.user.pk).values_list('club_id', flat=True)))
 
 
 class RockFaceInline(admin.StackedInline):
@@ -138,27 +137,24 @@ class RockFaceInline(admin.StackedInline):
     extra = 0
 
     def has_module_permission(self, request):
-        return in_a_club(request.user) or request.user.is_superuser
+        return request.user.is_superuser or in_a_club(request.user)
 
     def has_add_permission(self, request):
-        return in_a_club(request.user) or request.user.is_superuser
+        return request.user.is_superuser or in_a_club(request.user)
 
     def has_delete_permission(self, request, obj=None):
         if request.user.is_superuser:
             return True
         if obj:
-            for club in obj.clubs.all():
-                if request.user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
-                    return True
+            return in_club(obj.clubs.all(), request.user)
         return False
 
     def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
         if obj:
-            for club in obj.clubs.all():
-                if request.user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
-                    return True
-            return False or request.user.is_superuser
-        return in_a_club(request.user) or request.user.is_superuser
+            return in_club(obj.clubs.all(), request.user)
+        return in_a_club(request.user)
 
 
 class AreaAdmin(admin.ModelAdmin):
@@ -169,33 +165,31 @@ class AreaAdmin(admin.ModelAdmin):
     inlines = [RockFaceInline,]  # TODO: add parking inline
 
     def has_module_permission(self, request):
-        return in_a_club(request.user) or request.user.is_superuser
+        return request.user.is_superuser or in_a_club(request.user)
 
     def has_add_permission(self, request):
-        return in_a_club(request.user) or request.user.is_superuser
+        return request.user.is_superuser or in_a_club(request.user)
 
     def has_delete_permission(self, request, obj=None):
         if request.user.is_superuser:
             return True
         if obj:
-            for club in obj.clubs.all():
-                if request.user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
-                    return True
+            return in_club(obj.clubs.all(), request.user)
         return False
 
     def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
         if obj:
-            for club in obj.clubs.all():
-                if request.user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
-                    return True
-            return False or request.user.is_superuser
-        return in_a_club(request.user) or request.user.is_superuser
+            return in_club(obj.clubs.all(), request.user)
+        return in_a_club(request.user)
 
     def get_queryset(self, request):
         qs = super(AreaAdmin, self).get_queryset(request)
         if request.user.is_superuser:
             return qs
-        return qs.filter(Q(clubs__id__in=ClubAdmin.objects.filter(user_id=request.user.pk).values_list('club_id', flat=True)))
+        return qs.filter(
+            Q(clubs__id__in=ClubAdmin.objects.filter(user_id=request.user.pk).values_list('club_id', flat=True)))
 
 
 class RentalAdmin(admin.ModelAdmin):
