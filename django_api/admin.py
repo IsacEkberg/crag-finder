@@ -1,27 +1,86 @@
 from django.contrib import admin
+from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.db.models import Q, ManyToManyField
 from django_api.models import Area, RockFace, Route, Parking, ClubAdmin, Club
 from django.contrib.auth.models import User, Group
 from django.contrib.admin import AdminSite
 
 
+def in_a_club(user):
+    if user.pk in ClubAdmin.objects.all().values_list('user_id', flat=True):
+        return True
+    return False
+
+
 class MyAdminSite(AdminSite):
+    site_title = "test"
+    index_title = "Crag-finder"
+
     def has_permission(self, request):
         """
         Removed check for is_staff.
         """
         return request.user.is_active
 
+
 cragfinder_admin_site = MyAdminSite(name='cragfinderadmin')
+
 
 class RoutesInline(admin.TabularInline):
     model = Route
     fields = ('name', 'grade', 'type', 'short_description', 'length', 'first_ascent_name', 'first_ascent_year')
 
+    def has_module_permission(self, request):
+        return in_a_club(request.user) or request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return in_a_club(request.user) or request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if obj:
+            for club in obj.area.clubs.all():
+                if request.user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
+                    return True
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        if obj:
+            for club in obj.area.clubs.all():
+                if request.user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
+                    return True
+            return False or request.user.is_superuser
+        return in_a_club(request.user) or request.user.is_superuser
+
 
 class ParkingInline(admin.TabularInline):
     model = Parking
     fields = ('position',)
-    extra = 1
+    extra = 0
+
+    def has_module_permission(self, request):
+        return in_a_club(request.user) or request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return in_a_club(request.user) or request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if obj:
+            for club in obj.clubs.all():
+                if request.user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
+                    return True
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        if obj:
+            for club in obj.clubs.all():
+                if request.user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
+                    return True
+            return False or request.user.is_superuser
+        return in_a_club(request.user) or request.user.is_superuser
 
 
 class RockFaceAdmin(admin.ModelAdmin):
@@ -29,34 +88,129 @@ class RockFaceAdmin(admin.ModelAdmin):
     inlines = [RoutesInline]
     list_display = ('name',)
     list_display_links = ('name',)
-
+    readonly_fields = ['area']
     class Media:
         css = {
             "all": ("django_api/gmaps_admin.css", )
         }
         js = ("django_api/gmaps_admin.js", )
 
+    def has_module_permission(self, request):
+        return in_a_club(request.user) or request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return in_a_club(request.user) or request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if obj:
+            for club in obj.area.clubs.all():
+                if request.user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
+                    return True
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        if obj:
+            for club in obj.area.clubs.all():
+                if request.user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
+                    return True
+            return False or request.user.is_superuser
+        return in_a_club(request.user) or request.user.is_superuser
+
+    def get_queryset(self, request):
+        qs = super(RockFaceAdmin, self).get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(Q(area__clubs__id__in=ClubAdmin.objects.filter(user_id=request.user.pk).values_list('club_id', flat=True)))
+
 
 class RockFaceInline(admin.StackedInline):
     model = RockFace
+    fields = ['name']
     extra = 0
+
+    def has_module_permission(self, request):
+        return in_a_club(request.user) or request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return in_a_club(request.user) or request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if obj:
+            for club in obj.clubs.all():
+                if request.user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
+                    return True
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        if obj:
+            for club in obj.clubs.all():
+                if request.user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
+                    return True
+            return False or request.user.is_superuser
+        return in_a_club(request.user) or request.user.is_superuser
 
 
 class AreaAdmin(admin.ModelAdmin):
-    list_display = ('name', 'faces', 'routes')
+    list_display = ('name',)
     filter = ('name',)
-    readonly_fields = ('faces', 'routes')
-    inlines = [RockFaceInline, ParkingInline]
+    formfield_overrides = {ManyToManyField: {'widget': FilteredSelectMultiple(
+        "", is_stacked=False)}, }
+    inlines = [RockFaceInline,]  # TODO: add parking inline
+
+    def has_module_permission(self, request):
+        return in_a_club(request.user) or request.user.is_superuser
+
+    def has_add_permission(self, request):
+        return in_a_club(request.user) or request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if obj:
+            for club in obj.clubs.all():
+                if request.user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
+                    return True
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        if obj:
+            for club in obj.clubs.all():
+                if request.user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
+                    return True
+            return False or request.user.is_superuser
+        return in_a_club(request.user) or request.user.is_superuser
+
+    def get_queryset(self, request):
+        qs = super(AreaAdmin, self).get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(Q(clubs__id__in=ClubAdmin.objects.filter(user_id=request.user.pk).values_list('club_id', flat=True)))
 
 
 class RentalAdmin(admin.ModelAdmin):
     pass
 
+
+class AddClubAdminInline(admin.TabularInline):
+    model = ClubAdmin
+    fields = ('user',)
+    extra = 1
+
+
+class AdminClub(admin.ModelAdmin):
+    list_display = ('name',)
+    filter = ('name',)
+    inlines = [AddClubAdminInline]
+
+
 cragfinder_admin_site.register(Group)
 cragfinder_admin_site.register(User)
-cragfinder_admin_site.register(Area)
+cragfinder_admin_site.register(Area, AreaAdmin)
 cragfinder_admin_site.register(RockFace, RockFaceAdmin)
 cragfinder_admin_site.register(Route)
 
-cragfinder_admin_site.register(Club)
-cragfinder_admin_site.register(ClubAdmin)
+cragfinder_admin_site.register(Club, AdminClub)

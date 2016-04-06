@@ -9,7 +9,7 @@ class Area(models.Model):
     short_description = models.CharField(max_length=300, null=True, blank=False)
     long_description = models.CharField(max_length=4000, null=True, blank=False)
     road_description = models.CharField(max_length=4000, null=True, blank=False)
-    clubs = models.ManyToManyField('Club')
+    clubs = models.ManyToManyField('Club', blank=False)
 
     @property
     def faces(self):
@@ -194,3 +194,6 @@ class Club(models.Model):
 class ClubAdmin(models.Model):
     club = models.ForeignKey(Club)
     user = models.ForeignKey(User)
+
+    def __str__(self):
+        return str(self.user)
