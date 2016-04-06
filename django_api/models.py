@@ -1,3 +1,4 @@
+from reversion import revisions as reversion
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -223,3 +224,9 @@ class ClubAdmin(models.Model):
 
     def __str__(self):
         return str(self.user)
+
+reversion.register(Area, follow=["rockfaces", "parking"])
+reversion.register(RockFace, follow=["routes"])
+reversion.register(Parking)
+reversion.register(Route)
+reversion.register(Club, follow=['area_set'])

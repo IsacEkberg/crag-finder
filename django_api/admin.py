@@ -4,6 +4,7 @@ from django.db.models import Q, ManyToManyField
 from django_api.models import Area, RockFace, Route, Parking, ClubAdmin, Club
 from django.contrib.auth.models import User, Group
 from django.contrib.admin import AdminSite
+from reversion.admin import VersionAdmin
 
 
 def in_any_club(user):
@@ -90,7 +91,7 @@ class ParkingInline(admin.TabularInline):
         return in_any_club(request.user)
 
 
-class RockFaceAdmin(admin.ModelAdmin):
+class RockFaceAdmin(VersionAdmin):
     model = RockFace
     inlines = [RoutesInline]
     list_display = ('name',)
@@ -157,7 +158,7 @@ class RockFaceInline(admin.StackedInline):
         return in_any_club(request.user)
 
 
-class AreaAdmin(admin.ModelAdmin):
+class AreaAdmin(VersionAdmin):
     list_display = ('name',)
     filter = ('name',)
     formfield_overrides = {ManyToManyField: {'widget': FilteredSelectMultiple(
@@ -202,7 +203,7 @@ class AddClubAdminInline(admin.TabularInline):
     extra = 1
 
 
-class AdminClub(admin.ModelAdmin):
+class AdminClub(VersionAdmin):
     list_display = ('name',)
     filter = ('name',)
     inlines = [AddClubAdminInline]
