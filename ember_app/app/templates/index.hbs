@@ -1,10 +1,21 @@
-<h1>Welcome to Crag Finder</h1>
+<div class="header header-filter" style="transform: translate3d(0px, 0px, 0px)">
+  <div class="container">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <div class="brand">
+                <h1>Crag finder</h1>
+                <h3>Find crags close to you.</h3>
+            </div>
+        </div>
+    </div>
+  </div>
+</div>
 
-<h1 class="subtitle">Find a crag close to you!</h1>
+<div class="main main-raised">
+    <div class="section section-basic">
+        <div class="container">
+                {{filter-crag filteredList=filteredList autoComplete=(action 'autoComplete') search=(action 'search')}}
 
-{{filter-crag filteredList=filteredList autoComplete=(action 'autoComplete') search=(action 'search')}}
-
-<div class="row">
 
 {{#each model as |climbingArea|}}
     <div class="col-sm-6 col-md-4">
@@ -18,5 +29,8 @@
           </div>
       </div>
     </div>
+  <div class="clearfix"></div>
 {{/each}}
+        </div>
+    </div>
 </div>
