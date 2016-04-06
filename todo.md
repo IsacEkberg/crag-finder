@@ -1,15 +1,18 @@
 #TODO:
+
+
 __Practicals__
-- Starta bolag. I
+- Starta bolag. On Hold.
+
+
 __MVP:__
 - Clean up django-admin. J
 - content authoring system in django-admin. (Area managers, groups, reversion, user admin group)
 - Secure POST to Django-REST
-- Create start page (mobile). I
 - Create area view (mobile). I
 - Create directions view (mobile). I
 - Create routes view (mobile). I
-- add nr to routs
+- add nr to routes (django field, should be user specified, and allow stuff like: '13a' & '13b')
 - Enable password reset. J
 - Show rockface pictures. (How to find url? Pass it in DRF?) I/J
 - Picture upload (Images of rockfaces). J

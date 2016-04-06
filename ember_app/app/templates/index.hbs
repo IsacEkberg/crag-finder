@@ -1,9 +1,9 @@
 <h1>Welcome to Crag Finder</h1>
 
-<p>Find crag close to you!</p>
-<!--
-{{filter-listing filteredList=filteredList autoComplete=(action 'autoComplete') search=(action 'search')}}
--->
+<h1 class="subtitle">Find a crag close to you!</h1>
+
+{{filter-crag filteredList=filteredList autoComplete=(action 'autoComplete') search=(action 'search')}}
+
 <div class="row">
 
 {{#each model as |climbingArea|}}
@@ -13,11 +13,10 @@
               <h3 class="panel-title">{{ climbingArea.name }}</h3>
           </div>
           <div class="panel-body">
+              {{climbingArea.short_description}}
               {{#link-to "area" climbingArea}}Länk{{/link-to}}
           </div>
       </div>
     </div>
 {{/each}}
 </div>
-
-<p>Very good price!</p>

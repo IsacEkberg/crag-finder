@@ -1,5 +1,7 @@
-from rest_framework import viewsets, permissions
+from django.contrib.admin import filters
+from rest_framework import viewsets, permissions, filters
 from rest_framework.response import Response
+import django_filters
 
 from .models import Area, Parking, Route, RockFace
 from .serializers import AreaSerializer, RockFaceSerializer, ParkingSerializer, RouteSerializer
@@ -8,11 +10,8 @@ from .serializers import AreaSerializer, RockFaceSerializer, ParkingSerializer, 
 class AreaViewSet(viewsets.ModelViewSet):
     serializer_class = AreaSerializer
     queryset = Area.objects.all()
-
-    def list(self, request, *args, **kwargs):
-        queryset = Area.objects.all()
-        serializer = self.serializer_class(queryset, many=True)
-        return Response(serializer.data)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('^name',)
 
 
 class RockFaceViewSet(viewsets.ReadOnlyModelViewSet):

@@ -1,0 +1,6 @@
+
+<div class="form-group">
+    {{!-- The concat thing in the label and input id is to guarantee uniqueness --}}
+    <label class="control-label" for="{{concat elementId '-name'}}"></label>
+  {{input id = (concat elementId '-name')value=filter key-up=(action 'autoComplete' filter) class='form-control' placeholder='Search for a crag...' }}
+</div>
