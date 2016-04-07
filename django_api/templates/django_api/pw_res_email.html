@@ -1,0 +1,15 @@
+Hej!
+
+Någon har begärt att ändra ditt lösenord på cragfinder.se.
+
+Följ länken nedan för att komma till ett formulär för att ställa in ett nytt lösenord:
+
+{{ protocol}}://{{ domain }}{% url 'password_reset_confirm' uidb64=uid token=token %}
+
+Om du glömt ditt användarnamn så är det: {{ user.get_username }}
+
+Om du inte begärt lösenord kan du gladeligen ignorera detta mail.
+
+Ha en trevlig dag.
+
+/Teamet bakom Cragfinder.se

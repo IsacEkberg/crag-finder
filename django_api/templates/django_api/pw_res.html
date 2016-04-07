@@ -1,0 +1,33 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }} | Crag finder{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="/">Crag finder</a></h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% load i18n admin_static %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+<p>Ange din e-post, därefter skapas en engångslänk som kommer skickas till din mail och som sedan kan användas för att skapa ett nytt ett lösenord.</p>
+<form action="{% url 'password_reset' %}" method="post">
+    {% csrf_token %}
+    <input type="email" class="form-control" placeholder="e-postadress" name="email" id="id_email" required autofocus>
+    <div><input type="submit" value="Återställ lösenord" class="button default"></div>
+</form>
+</div>
+{% endblock %}
+
+
+
