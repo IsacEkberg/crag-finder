@@ -1,14 +1,21 @@
+from reversion import revisions as reversion
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class Area(models.Model):
     """
     A climbing area. Contains several crags. A parking or more.
     """
-    name = models.CharField(max_length=150, unique=True)
-    short_description = models.CharField(max_length=300, null=True, blank=False)
-    long_description = models.CharField(max_length=4000, null=True, blank=False)
-    road_description = models.CharField(max_length=4000, null=True, blank=False)
+    name = models.CharField(verbose_name="namn", max_length=150, unique=True)
+    short_description = models.CharField(verbose_name="kort beskrivning", max_length=300, null=True, blank=False)
+    long_description = models.CharField(verbose_name="lång beskrivning",max_length=4000, null=True, blank=False)
+    road_description = models.CharField(verbose_name="väg beskrivning",max_length=4000, null=True, blank=False)
+    clubs = models.ManyToManyField('Club', verbose_name="ansvarig klubb/klubbar", blank=False)
+
+    class Meta:
+        verbose_name = 'område'
+        verbose_name_plural = 'områden'
 
     @property
     def faces(self):
@@ -26,12 +33,16 @@ class RockFace(models.Model):
     """
     A rockface holds a set of routes. One area can have several Rockfaces.
     """
-    name = models.CharField(max_length=150)
-    area = models.ForeignKey(Area, related_name="rockfaces")
-    geo_data = models.CharField(max_length=3000, blank=False, null=True)
+    name = models.CharField(verbose_name="namn", max_length=150)
+    area = models.ForeignKey(Area, verbose_name="område", related_name="rockfaces")
+    geo_data = models.CharField(verbose_name="plats för klippan", max_length=3000, blank=False, null=True)
 
-    short_description = models.CharField(max_length=300, null=True, blank=True)
-    long_description = models.CharField(max_length=4000, null=True, blank=True)
+    short_description = models.CharField(verbose_name="kort beskrivning", max_length=300, null=True, blank=True)
+    long_description = models.CharField(verbose_name="lång beskrivning", max_length=4000, null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'klippa'
+        verbose_name_plural = 'klippor'
 
     @property
     def routes(self):
@@ -42,20 +53,24 @@ class RockFace(models.Model):
 
 
 class Parking(models.Model):
-    area = models.ForeignKey(Area, related_name="parking")
-    position = models.PositiveIntegerField(default=5)  # TODO: Implement a solution.
+    area = models.ForeignKey(Area, verbose_name="område", related_name="parking")
+    position = models.PositiveIntegerField(verbose_name="position", default=5)  # TODO: Implement a solution.
+
+    class Meta:
+        verbose_name = 'parkering'
+        verbose_name_plural = 'parkeringar'
 
 
 class Route(models.Model):
     """
     A route belongs to a rockface.
     """
-    name = models.CharField(max_length=150)
-    rock_face = models.ForeignKey(RockFace, related_name="routes")
-    short_description = models.CharField(max_length=160, blank=True, null=True)
-    first_ascent_name = models.CharField(max_length=160, blank=True, null=True)
-    first_ascent_year = models.PositiveIntegerField(blank=True, null=True)
-    length = models.PositiveIntegerField(blank=True, null=True)
+    name = models.CharField(verbose_name="namn", max_length=150)
+    rock_face = models.ForeignKey(RockFace, verbose_name="klippa", related_name="routes")
+    short_description = models.CharField(verbose_name="kort beskrivning", max_length=160, blank=True, null=True)
+    first_ascent_name = models.CharField(verbose_name="första bestigarens namn", max_length=160, blank=True, null=True)
+    first_ascent_year = models.PositiveIntegerField(verbose_name="år för första bestigning", blank=True, null=True)
+    length = models.PositiveIntegerField(verbose_name="längd", blank=True, null=True)
 
     #Grade constans
     PROJECT = 'no'
@@ -151,7 +166,8 @@ class Route(models.Model):
         (NINE_C, '9c'),
         (NINE_C_PLUS, '9c+'),
     )
-    grade = models.CharField(max_length=3,
+    grade = models.CharField(verbose_name="gradering",
+                             max_length=3,
                              choices=GRADE_CHOICES,
                              default=PROJECT,
                              blank=False)
@@ -169,13 +185,48 @@ class Route(models.Model):
         (TYPE_AID, 'Aid'),
         (TYPE_DWS, 'DWS'),
     )
-    type = models.CharField(max_length=2,
+    type = models.CharField(verbose_name="typ",
+                            max_length=2,
                             choices=TYPE_CHOICES,
                             default=TYPE_SPORT,
                             blank=False)
 
     #routeline = models.CharField(max_length=300, default="[]", null=True, blank=True)
+    class Meta:
+        verbose_name = 'led'
+        verbose_name_plural = 'leder'
 
     def __str__(self):
         return self.name + ' (' + self.rock_face.area.name + ')'
 
+
+class Club(models.Model):
+    name = models.CharField(verbose_name="namn", max_length=255)
+    address = models.TextField(verbose_name="adress")
+    email = models.EmailField(verbose_name="epost",)
+    info = models.TextField(verbose_name="Information om klubben",)
+
+    class Meta:
+        verbose_name = 'klubb'
+        verbose_name_plural = 'klubbar'
+
+    def __str__(self):
+        return self.name
+
+
+class ClubAdmin(models.Model):
+    club = models.ForeignKey(Club, verbose_name="klubb")
+    user = models.ForeignKey(User, verbose_name="användare")
+
+    class Meta:
+        verbose_name = 'klubbadministratör'
+        verbose_name_plural = 'klubbadministratörer'
+
+    def __str__(self):
+        return str(self.user)
+
+reversion.register(Area, follow=["rockfaces", "parking"])
+reversion.register(RockFace, follow=["routes"])
+reversion.register(Parking)
+reversion.register(Route)
+reversion.register(Club, follow=['area_set'])

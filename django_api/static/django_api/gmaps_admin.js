@@ -6,14 +6,24 @@
 if(!$){
     $ = django.jQuery;
     $('document').ready(function(){
-        console.log("Haj!");
 
         function init(){
-            console.log("Haj2!");
             prevoiusValues = getPreviousInput();
+            s = $input.val();
+            var center_coord;
+            var zoon_level;
+            if(!s){
+                zoon_level = 6;
+                center_coord = {lat: 60.662, lng: 15.681};
+            } else {
+                var point = s.split(";")[0];
+                var lat_lng = point.substring(1, point.length-1).split(", ");
+                zoon_level = 14;
+                center_coord = {lat: Number(lat_lng[0]), lng: Number(lat_lng[1])};
+            }
             map = new google.maps.Map(document.getElementById('map'), {
-               zoom: 6,
-               center: {lat: 60.662, lng: 15.681}  // Center the map on Chicago, USA.
+               zoom: zoon_level,
+               center: center_coord
             });
 
             poly = new google.maps.Polyline({
@@ -40,11 +50,9 @@ if(!$){
             setInterval(updateInput, 5000)
         }
         function removeVertex(e) {
-            console.log("Haj2.5");
             if (e.vertex == undefined) {
                 return;
             }
-            console.log("Haj3");
             var path = poly.getPath();
             path.removeAt(e.vertex);
             updateInput();
@@ -61,7 +69,6 @@ if(!$){
         }
 
         function updateInput() {
-            console.log("Update!");
             var path = poly.getPath();
             var s = "";
             path.forEach(function(ele, index){
@@ -73,11 +80,9 @@ if(!$){
         function getPreviousInput(){
             s = $input.val();
             if(!s){
-                console.log("No previous data");
                 return
             }
             arr = s.split(";");
-            console.log(arr);
             arr2 = [];
             $.each(arr,function( index, value2 ) {
                 if(value == "") {return;}
@@ -86,7 +91,6 @@ if(!$){
                 if(vals2 == "") {return;}
                 arr2.push({lat:parseFloat(vals2[0]), lng:parseFloat(vals2[1])})
             });
-            console.log(arr2);
             return arr2;
         }
 
