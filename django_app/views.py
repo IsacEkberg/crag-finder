@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.views import (
     password_reset_confirm,
@@ -36,12 +37,12 @@ def reset_confirm(request, uidb64=None, token=None):
 
 
 def reset_done(request):
-    print("Ett mail kommer inom kort skickas till mailadressen som angavs. "
-                             "I den finns en länk för att skapa ett nytt lösenord. "
-                             "Om det inte kommer något mail, vänligen kontakta utgivare@isektionen.se")
-    return redirect("/")
+    messages.success(request,
+                     "Ett mail kommer inom kort skickas till mailadressen som angavs. "
+                     "I den finns en länk för att skapa ett nytt lösenord. "
+                     "Om det inte kommer något mail vänligen kontrollera att du angivit rätt epost och försök igen.")
+    return redirect(reverse("admin:login"))
 
 
 def reset_complete(request):
-    print("Ditt lösenord är uppdaterat, logga in nedan.")
-    return redirect(reverse("login_view"))
+    return redirect(reverse("admin:login"))
