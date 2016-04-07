@@ -1,4 +1,21 @@
-{{partial 'partials/nav-bar'}}
-<div class="container">
+{{nav-bar-material}}
+<div class="wrapper">
   {{outlet}}
 </div>
+<footer>
+    <div class="container">
+        <nav class="pull-left">
+            <ul>
+                <li>
+                    <a href="https://github.com/IsacEkberg/crag-finder">Source Code</a>
+                </li>
+                <li>
+                    {{#link-to 'construction'}}About{{/link-to}}
+                </li>
+            </ul>
+        </nav>
+        <nav class="pull-right copyright">
+            © Crafinder mega AB
+        </nav>
+    </div>
+</footer>
