@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.db.models import Q, ManyToManyField
+from django.utils.safestring import mark_safe
 
-from django_api.forms import RockFaceAdminForm
+from django_api.forms import RockFaceAdminForm, AreaAdminForm
 from django_api.models import Area, RockFace, Route, Parking, ClubAdmin, Club
 from django.contrib.auth.models import User, Group
 from django.contrib.admin import AdminSite
@@ -22,6 +23,21 @@ def in_club(clubs, user):
     return False
 
 
+def delete_model(modeladmin, request, queryset):
+    if request.user.is_superuser:
+        for obj in queryset:
+            obj.delete()
+    elif str(modeladmin) == "django_api.{:}".format(str(AreaAdmin.__name__)):
+        for obj in queryset:
+            if obj and in_club(obj.clubs.all(), request.user):
+                obj.delete()
+    elif str(modeladmin) == "django_api.{:}".format(str(RockFaceAdmin.__name__)):
+        for obj in queryset:
+            if obj and in_club(obj.area.clubs.all(), request.user):
+                obj.delete()
+delete_model.short_description = "Ta bort markerade"
+
+
 class MyAdminSite(AdminSite):
     # Text to put at the end of each page's <title>.
     site_title = 'Crag-finder admin'
@@ -30,7 +46,9 @@ class MyAdminSite(AdminSite):
     site_header = 'Crag-finder admin'
 
     # Text to put at the top of the admin index page.
-    index_title = 'Crag-finder admin'
+    index_title = mark_safe(
+        '1. Skapa ett område först och lägg in vilka klippor som finns på platsen och namnen på dem där. <br>'
+        '2. Gå in under klippor och lägg in mer information och leder på varje klippa.')
 
     def has_permission(self, request):
         """
@@ -73,6 +91,7 @@ class ParkingInline(admin.TabularInline):
     extra = 0
 
     def has_module_permission(self, request):
+
         return request.user.is_superuser or in_any_club(request.user)
 
     def has_add_permission(self, request):
@@ -100,6 +119,14 @@ class RockFaceAdmin(VersionAdmin):
     list_display_links = ('name',)
     readonly_fields = ['area']
 
+    actions = [delete_model]
+
+    def get_actions(self, request):
+        actions = super(RockFaceAdmin, self).get_actions(request)
+        if not request.user.is_superuser:
+            del actions['delete_selected']
+        return actions
+
     fieldsets = (
         (None, {
             'fields': ('area', 'name', 'short_description', 'long_description',)
@@ -121,13 +148,6 @@ class RockFaceAdmin(VersionAdmin):
 
     def has_add_permission(self, request):
         return request.user.is_superuser
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.area.clubs.all(), request.user)
-        return False
 
     def has_change_permission(self, request, obj=None):
         if request.user.is_superuser:
@@ -176,19 +196,28 @@ class AreaAdmin(VersionAdmin):
     formfield_overrides = {ManyToManyField: {'widget': FilteredSelectMultiple(
         "", is_stacked=False)}, }
     inlines = [RockFaceInline,]  # TODO: add parking inline
+    form = AreaAdminForm
+    actions = [delete_model]
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'short_description', 'long_description', 'road_description', )
+        }),
+        ('KLUBB/KLUBBAR', {
+            'fields': ('clubs',),
+        }),
+    )
+
+    def get_actions(self, request):
+        actions = super(AreaAdmin, self).get_actions(request)
+        if not request.user.is_superuser:
+            del actions['delete_selected']
+        return actions
 
     def has_module_permission(self, request):
         return request.user.is_superuser or in_any_club(request.user)
 
     def has_add_permission(self, request):
         return request.user.is_superuser or in_any_club(request.user)
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.clubs.all(), request.user)
-        return False
 
     def has_change_permission(self, request, obj=None):
         if request.user.is_superuser:
@@ -219,6 +248,29 @@ class AdminClub(VersionAdmin):
     def has_module_permission(self, request):
         # stupid check django performs to not get 403 when clicking on app label
         return in_any_club(request.user) or request.user.is_superuser
+
+    def get_actions(self, request):
+        actions = super(AdminClub, self).get_actions(request)
+        if not request.user.is_superuser:
+            return None
+        return actions
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if obj:
+            return obj.pk in ClubAdmin.objects.filter(user_id=request.user.pk).values_list('club_id', flat=True)
+        return in_any_club(request.user)
+
+    def get_queryset(self, request):
+        qs = super(AdminClub, self).get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(
+            Q(pk__in=ClubAdmin.objects.filter(user_id=request.user.pk).values_list('club_id', flat=True)))
 
 
 cragfinder_admin_site.register(Group)
