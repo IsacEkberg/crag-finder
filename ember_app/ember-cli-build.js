@@ -15,13 +15,13 @@ module.exports = function(defaults) {
   //Vendor JS:
   app.import('vendor/tim/js/bootstrap.min.js');
   app.import('vendor/tim/js/bootstrap-datepicker.js');
-  app.import('vendor/tim/js/material.min.js');
   app.import('vendor/tim/js/nouislider.min.js');
-  app.import('vendor/tim/js/material-kit.js');
-  app.import('vendor/tim/js/jquery.min.js');
+  app.import('vendor/tim/js/material.min.js');
+  //app.import('vendor/tim/js/material-kit.js');
+  //app.import('vendor/tim/js/jquery.min.js');
 
   app.import('vendor/tim/css/bootstrap.min.css');
-  //app.import('vendor/tim/css/material-kit.css');
+  app.import('vendor/tim/css/demo.css');
 
   app.import('bower_components/font-awesome/css/font-awesome.min.css');
   app.import('bower_components/font-awesome/fonts/fontawesome-webfont.woff', {destDir: 'fonts'});

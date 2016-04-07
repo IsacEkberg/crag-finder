@@ -1,8 +1,8 @@
-<div class="header header-filter" style="transform: translate3d(0px, 0px, 0px)">
+<div id="paralax-bg" class="header header-filter" style="transform: translate3d(0px, 0px, 0px); background-image: url('img/mountain-bg2.jpg')">
   <div class="container">
     <div class="row">
         <div class="col-md-8 col-md-offset-2">
-            <div class="brand">
+            <div class="brand-index">
                 <h1>Crag finder</h1>
                 <h3>Find crags close to you.</h3>
             </div>
@@ -16,21 +16,29 @@
         <div class="container">
                 {{filter-crag filteredList=filteredList autoComplete=(action 'autoComplete') search=(action 'search')}}
 
+                {{#each model as |climbingArea|}}
+                    <div class="col-xs-6">
 
-{{#each model as |climbingArea|}}
-    <div class="col-sm-6 col-md-4">
-      <div class="panel panel-primary">
-          <div class="panel-heading">
-              <h3 class="panel-title">{{ climbingArea.name }}</h3>
-          </div>
-          <div class="panel-body">
-              {{climbingArea.short_description}}
-              {{#link-to "area" climbingArea}}Länk{{/link-to}}
-          </div>
-      </div>
-    </div>
-  <div class="clearfix"></div>
-{{/each}}
+                    <div class="card">
+                      <div class="card-height-indicator">
+                          <div class="panel-heading"></div>
+                        <div class="card-content">
+                          <div class="card-image">
+                              <img src="/img/mountain-bg.jpg">
+                              <h3 class="card-image-headline">{{ climbingArea.name }}</h3>
+                          </div>
+                          <div class="card-body">
+                            {{climbingArea.short_description}}
+                          </div>
+                          <footer class="card-footer">
+                            {{#link-to "area" climbingArea}}Länk{{/link-to}}
+                          </footer>
+
+                          </div>
+                      </div>
+                    </div>
+                    </div>
+                {{/each}}
         </div>
     </div>
 </div>
