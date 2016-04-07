@@ -10,6 +10,7 @@ Router.map(function() {
   this.route('contact');
   this.route('area', { path: 'area/:id' });
   this.route('rockface', {path: 'rockface/:id'});
+  this.route('construction');
 });
 
 export default Router;

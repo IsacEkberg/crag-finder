@@ -1,40 +1,112 @@
-{{outlet}}
-<h1>{{ model.name }}</h1>
-<ul class="nav nav-tabs">
-    <li class="active"><a href="#description" data-toggle="tab" aria-expanded="false">Beskrivning</a></li>
-    <li><a href="#direction" data-toggle="tab" aria-expanded="false">Vägbeskrivning</a></li>
-    <li><a href="#routes" data-toggle="tab" aria-expanded="false">Leder</a></li>
-</ul>
-<div class="tab-content">
-    <div class="tab-pane fade active in" id="description">
-      <p>{{model.short_description}}</p>
-      <p>{{model.long_description}}</p>
+<div id="paralax-bg" class="header header-filter"
+     style="transform: translate3d(0px, 0px, 0px); background-image: url('img/mountain-bg2.jpg')">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="brand-index">
+                    <h1>{{ model.name }}</h1>
+                    <h3>{{model.short_description}}</h3>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="tab-pane fade" id="direction">
-      <p>{{model.road_description}}</p>
-      {{google-maps area=model}}
-        <!--TODO: Make sure gmaps loads... -->
-    </div>
-
-    <div class="tab-pane fade" id="routes">
-        {{#if model.severalRockfaces}}
-          {{#each model.rockfaces as |rockface|}}
-            <h2>{{rockface.name}}</h2>
-            <ol>
-              {{#each rockface.routes as |route|}}
-                <li>{{route.name}}</li>
-              {{/each}}
-            </ol>
-          {{/each}}
-        {{else}}
-          {{#each model.rockfaces as |rockface|}}
-              <ol>
-                {{#each rockface.routes as |route|}}
-                    <li>{{route.name}}</li>
-                {{/each}}
-              </ol>
-          {{/each}}
-        {{/if}}
-    </div>
-
 </div>
+
+<div class="main main-raised">
+    <div class="container">
+        <div class="col-md-6 col-md-offset-3">
+            <div class="profile-tabs">
+                <div class="nav-align-center">
+                    <ul class="nav nav-pills" role="tablist">
+                        <li class="active">
+                            <a href="#description" role="tab" data-toggle="tab" aria-expanded="true">
+                                <i class="material-icons">description</i> Description
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#overview" role="tab" data-toggle="tab" aria-expanded="false">
+                                <i class="material-icons">terrain</i>
+                                Overview
+                            </a>
+                        </li>
+                        <li class="">
+                            <a href="#routes" role="tab" data-toggle="tab" aria-expanded="false">
+                                <i class="material-icons">list</i>
+                                Routes
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#find" role="tab" data-toggle="tab">
+                                <i class="material-icons">map</i>
+                                Find it
+                            </a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content gallery">
+                        <div class="tab-pane active" id="description">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p>{{model.long_description}}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane text-center" id="routes">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    {{#each model.rockfaces as |rockface|}}
+                                        <h2>{{rockface.name}}</h2>
+                                        {{#each rockface.routes as |route|}}
+                                          <li>{{route.name}}</li>
+                                       {{/each}}
+                                    {{/each}}
+                                </div>
+                            </div>
+                        </div>
+                      <div class="tab-pane text-center" id="overview">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p>Här visas en översikt</p>
+                                    <p>Och kanske en bild.</p>
+
+                                    {{!--
+                                      Make it work first...
+                                    {{google-maps area=model}}
+                                    --}}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane text-center" id="find">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p>{{model.road_description}}</p>
+
+                                    {{!--
+                                      Make it work first...
+                                    {{google-maps area=model}}
+                                    --}}
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <!-- End Profile Tabs -->
+        </div>
+    </div>
+</div>
+
+{{!--
+
+      {{#if model.severalRockfaces}}
+      {{else}}
+        {{#each model.rockfaces as |rockface|}}
+              {{#each rockface.routes as |route|}}
+                  li>{{route.name}}li>
+              {{/each}}
+        {{/each}}
+      {{/if}}
+
+--}}
+
