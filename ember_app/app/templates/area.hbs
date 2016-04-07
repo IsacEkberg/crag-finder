@@ -23,6 +23,12 @@
                                 <i class="material-icons">description</i> Description
                             </a>
                         </li>
+                        <li>
+                            <a href="#overview" role="tab" data-toggle="tab" aria-expanded="false">
+                                <i class="material-icons">terrain</i>
+                                Overview
+                            </a>
+                        </li>
                         <li class="">
                             <a href="#routes" role="tab" data-toggle="tab" aria-expanded="false">
                                 <i class="material-icons">list</i>
@@ -43,10 +49,6 @@
                                 <div class="col-md-6">
                                     <p>{{model.long_description}}</p>
                                 </div>
-                                <div class="col-md-6">
-                                    <img src="../assets/img/examples/chris3.jpg" class="img-rounded">
-                                    <img src="../assets/img/examples/chris4.jpg" class="img-rounded">
-                                </div>
                             </div>
                         </div>
                         <div class="tab-pane text-center" id="routes">
@@ -58,6 +60,19 @@
                                           <li>{{route.name}}</li>
                                        {{/each}}
                                     {{/each}}
+                                </div>
+                            </div>
+                        </div>
+                      <div class="tab-pane text-center" id="overview">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p>Här visas en översikt</p>
+                                    <p>Och kanske en bild.</p>
+
+                                    {{!--
+                                      Make it work first...
+                                    {{google-maps area=model}}
+                                    --}}
                                 </div>
                             </div>
                         </div>
