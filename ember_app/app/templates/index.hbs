@@ -17,23 +17,24 @@
                 {{filter-crag filteredList=filteredList autoComplete=(action 'autoComplete') search=(action 'search')}}
 
                 {{#each model as |climbingArea|}}
-                    <div class="col-xs-6">
+                    <div class="col-xs-12 col-md-6">
 
                     <div class="card">
                       <div class="card-height-indicator">
                           <div class="panel-heading"></div>
                         <div class="card-content">
+
                           <div class="card-image">
                               <img src="/img/mountain-bg.jpg">
                               <h3 class="card-image-headline">{{ climbingArea.name }}</h3>
                           </div>
                           <div class="card-body">
-                            {{climbingArea.short_description}}
-                          </div>
-                          <footer class="card-footer">
-                            {{#link-to "area" climbingArea}}Länk{{/link-to}}
-                          </footer>
 
+                            <p>
+                              {{climbingArea.short_description}}
+                            </p>
+                            {{#link-to "area" climbingArea}}Länk{{/link-to}}
+                          </div>
                           </div>
                       </div>
                     </div>
