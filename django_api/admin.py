@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.db.models import Q, ManyToManyField
+
+from django_api.forms import RockFaceAdminForm
 from django_api.models import Area, RockFace, Route, Parking, ClubAdmin, Club
 from django.contrib.auth.models import User, Group
 from django.contrib.admin import AdminSite
@@ -98,6 +100,16 @@ class RockFaceAdmin(VersionAdmin):
     list_display_links = ('name',)
     readonly_fields = ['area']
 
+    fieldsets = (
+        (None, {
+            'fields': ('area', 'name', 'short_description', 'long_description',)
+        }),
+        ('Karta', {
+            'fields': ('geo_data',),
+        }),
+    )
+    form = RockFaceAdminForm
+
     class Media:
         css = {
             "all": ("django_api/gmaps_admin.css", )
@@ -108,7 +120,7 @@ class RockFaceAdmin(VersionAdmin):
         return request.user.is_superuser or in_any_club(request.user)
 
     def has_add_permission(self, request):
-        return request.user.is_superuser or in_any_club(request.user)
+        return request.user.is_superuser
 
     def has_delete_permission(self, request, obj=None):
         if request.user.is_superuser:
@@ -191,10 +203,6 @@ class AreaAdmin(VersionAdmin):
             return qs
         return qs.filter(
             Q(clubs__id__in=ClubAdmin.objects.filter(user_id=request.user.pk).values_list('club_id', flat=True)))
-
-
-class RentalAdmin(admin.ModelAdmin):
-    pass
 
 
 class AddClubAdminInline(admin.TabularInline):
