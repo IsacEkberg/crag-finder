@@ -1,0 +1,33 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }} | Cragfinder{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="/">Cragfinder</a></h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+{% load i18n admin_static %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}" />{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+{% if validlink %}
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Bekräfta" class="button default">
+    </form>
+{% else %}
+    <p>Länken gäller inte längre!</p>
+{% endif %}
+</div>
+{% endblock %}
+
