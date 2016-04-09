@@ -40,10 +40,10 @@ delete_model.short_description = "Ta bort markerade"
 
 class MyAdminSite(AdminSite):
     # Text to put at the end of each page's <title>.
-    site_title = 'Crag-finder admin'
+    site_title = 'Crag finder admin'
 
     # Text to put in each page's <h1>.
-    site_header = 'Crag-finder admin'
+    site_header = 'Crag finder admin'
 
     # Text to put at the top of the admin index page.
     index_title = mark_safe(
