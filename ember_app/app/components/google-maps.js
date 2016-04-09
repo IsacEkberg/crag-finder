@@ -1,5 +1,6 @@
 import Ember from 'ember';
-
+/* globals DS */
+/* globals $ */
 export default Ember.Component.extend({
   area: null,
   gmapsService: Ember.inject.service('gmaps-service'),
@@ -9,23 +10,23 @@ export default Ember.Component.extend({
     return {
       center: {lat: 60.662, lng: 15.681},
       zoom: 6
-    }
+    };
   },
 
   didInsertElement() {
     function parse_geo_data(s) {
       if(!s){
         console.log("No previous data");
-        return
+        return;
       }
       var arr = s.split(";");
       var arr2 = [];
       $.each(arr,function( index, value2 ) {
-        if(value == "") {return;}
+        if(value === "") {return;}
         var value = value2.substring(1, value2.length-1);
         var vals2 = value.split(", ");
-        if(vals2 == "") {return;}
-        arr2.push({lat:parseFloat(vals2[0]), lng:parseFloat(vals2[1])})
+        if(vals2 === "") {return;}
+        arr2.push({lat:parseFloat(vals2[0]), lng:parseFloat(vals2[1])});
       });
       console.log(arr2);
       return arr2;
@@ -36,7 +37,7 @@ export default Ember.Component.extend({
 
     //This loads the google maps script using a ember service.
     this.get('gmapsService').loadScript().then(function () {
-
+      /* globals google */
       console.log("Initiating gmaps");
       var map = new google.maps.Map(document.getElementById('map'), {
         zoom: 6,
@@ -50,7 +51,7 @@ export default Ember.Component.extend({
         //This bound box is used to calculate the center of the points in this area.
         var bound = new google.maps.LatLngBounds();
 
-        rockfaces.forEach(function (value, index) {
+        rockfaces.forEach(function (value) {
           var marker_array = parse_geo_data(value.get('geo_data'));
           console.log(marker_array);
 
@@ -65,9 +66,9 @@ export default Ember.Component.extend({
           poly.setMap(map);
 
           //add points to boundbox.
-          marker_array.forEach(function (el, index) {
+          marker_array.forEach(function (el) {
             bound.extend(new google.maps.LatLng(el));
-          })
+          });
 
         });
         //TODO: Save/calculate zoom level. In django model?

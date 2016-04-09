@@ -1,4 +1,6 @@
 import Ember from 'ember';
+var $ = Ember.jQuery;
+
 
 export default Ember.Component.extend({
   transparent: true,
@@ -13,7 +15,7 @@ export default Ember.Component.extend({
     $('[data-toggle="tooltip"], [rel="tooltip"]').tooltip();
 
     // Activate Datepicker
-    if($('.datepicker').length != 0){
+    if($('.datepicker').length !== 0){
         $('.datepicker').datepicker({
              weekStart:1
         });
@@ -29,7 +31,7 @@ export default Ember.Component.extend({
     var transparent = this.get('transparent');
     var deb = this.get('debounce');
     var $big_image = $('#paralax-bg');
-    var window_width = $(window).width();
+    //var window_width = $(window).width();
     console.log($big_image);
 
     var materialKit = this.get('materialKit')(deb, transparent, $big_image);
@@ -85,7 +87,7 @@ export default Ember.Component.extend({
       },
       checkScrollForParallax: debounce(function(){
         console.log("Checking scroll.");
-        var current_scroll = $(this).scrollTop();
+        //var current_scroll = $(this).scrollTop();
 
         var oVal = ($(window).scrollTop() / 3);
 
@@ -107,9 +109,9 @@ export default Ember.Component.extend({
         clearTimeout(timeout);
         timeout = setTimeout(function () {
           timeout = null;
-          if (!immediate) func.apply(context, args);
+          if (!immediate) { func.apply(context, args); }
         }, wait);
-        if (immediate && !timeout) func.apply(context, args);
+        if (immediate && !timeout) { func.apply(context, args); }
       };
     }
 });
