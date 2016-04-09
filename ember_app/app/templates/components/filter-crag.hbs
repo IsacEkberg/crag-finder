@@ -1,6 +1,30 @@
 
-<div class="form-group">
+<div class="input-group">
     {{!-- The concat thing in the label and input id is to guarantee uniqueness --}}
+    <span class="input-group-addon">
+        <i class="material-icons">search</i>
+    </span>
+    {{!--
     <label class="control-label" for="{{concat elementId '-name'}}"></label>
-  {{input id = (concat elementId '-name')value=filter key-up=(action 'autoComplete' filter) class='form-control' placeholder='Search for a crag...' }}
+    --}}
+  <div class="form-group">
+  {{input
+  list=(concat elementId '-inputID')
+  value=filter
+  key-up=(action 'autoComplete')
+  focus-in=(action 'focus')
+
+  class='form-control'
+  placeholder='Search for a crag...'}}
+
+  </div>
+    <div class="dropdown {{dropdownClass}}">
+      <ul class="dropdown-menu">
+        {{# each filteredList as |area|}}
+            <li>{{#link-to "area" area}} {{area.name}} {{/link-to}}</li>
+            <li class="divider"></li>
+        {{/each}}
+      </ul>
+    </div>
 </div>
+

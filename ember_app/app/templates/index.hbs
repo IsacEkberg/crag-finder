@@ -5,17 +5,20 @@
             <div class="brand-index">
                 <h1>Crag finder</h1>
                 <h3>Find crags close to you.</h3>
+                <div class="search-box">
+                  <div class="search-bg"></div>
+                  {{filter-crag filteredList=model autoComplete=(action 'autoComplete') search=(action 'search')}}
+                </div>
             </div>
         </div>
     </div>
   </div>
 </div>
 
+                {{!--
 <div class="main main-raised">
     <div class="section section-basic">
         <div class="container">
-                {{filter-crag filteredList=filteredList autoComplete=(action 'autoComplete') search=(action 'search')}}
-
                 {{#each model as |climbingArea|}}
                     <div class="col-xs-12 col-md-6">
 
@@ -43,3 +46,4 @@
         </div>
     </div>
 </div>
+                --}}
