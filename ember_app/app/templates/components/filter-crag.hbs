@@ -7,22 +7,25 @@
     {{!--
     <label class="control-label" for="{{concat elementId '-name'}}"></label>
     --}}
-  <div class="form-group">
+  <div class="form-group label-placeholder {{isFocusedState}}">
   {{input
   list=(concat elementId '-inputID')
   value=filter
-  key-up=(action 'autoComplete')
-  focus-in=(action 'focus')
+  input=(action 'autoComplete')
+  focus-in=(action 'focusIn')
+  focus-out=(action 'focusOut')
 
   class='form-control'
   placeholder='Search for a crag...'}}
 
   </div>
-    <div class="dropdown {{dropdownClass}}">
+    <div {{action 'menuFocusIn' on='keyUp'}} class="dropdown {{dropdownClass}}">
       <ul class="dropdown-menu">
         {{# each filteredList as |area|}}
             <li>{{#link-to "area" area}} {{area.name}} {{/link-to}}</li>
             <li class="divider"></li>
+        {{else}}
+          <li class="danger"><a>Inga träffar...</a></li>
         {{/each}}
       </ul>
     </div>
