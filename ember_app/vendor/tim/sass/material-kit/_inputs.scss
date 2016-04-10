@@ -43,7 +43,7 @@
     font-weight: 400;
   }
 
-  // smaller focused or static size
+  // smaller inputFocused or static size
   label.control-label {
     font-size: $static-font-size;
     line-height: $static-line-height;
@@ -112,7 +112,7 @@
         }
       }
 
-      // static, focused, or autofill floating labels
+      // static, inputFocused, or autofill floating labels
       &.label-static,
       &.label-floating.is-focused,
       &.label-floating:not(.is-empty) {
@@ -212,7 +212,7 @@
     display: none;
   }
 
-  // form-group is-focused display
+  // form-group is-inputFocused display
   &.is-focused {
     .form-control {
       outline: none;
@@ -226,13 +226,13 @@
       }
     }
 
-    //.variations(unquote(".is-focused label.control-label"), color, $brand-primary); // focused label color variations
+    //.variations(unquote(".is-inputFocused label.control-label"), color, $brand-primary); // inputFocused label color variations
     label,
     label.control-label {
       color: $brand-primary;
     }
 
-    //.variations(unquote(".is-focused.label-placeholder label.control-label"), color, $mdb-input-placeholder-color);  // default label color variations
+    //.variations(unquote(".is-inputFocused.label-placeholder label.control-label"), color, $mdb-input-placeholder-color);  // default label color variations
     &.label-placeholder {
       label,
       label.control-label {

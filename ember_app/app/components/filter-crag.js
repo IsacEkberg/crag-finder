@@ -3,15 +3,23 @@ var $ = Ember.$;
 
 export default Ember.Component.extend({
   filter: null,
-  dropdownClass: Ember.computed('focused', function () {
-    if( this.get('focused') ) {
+
+  showAutoComplete: Ember.computed('inputFocused', 'autoCompleteMenuFocused', function () {
+    var input = this.get('inputFocused');
+    //var menu = this.get('autoCompleteMenuFocused');
+    return (input);
+  }),
+
+  dropdownClass: Ember.computed('showAutoComplete', function () {
+    if( this.get('showAutoComplete') ) {
       return 'open';
     } else {
       return '';
     }
   }),
   filteredList: null,
-  focused: false,
+  inputFocused: false,
+  autoCompleteMenuFocused: false,
 
   moveFocusDown: function () {
     console.log("Moving on.");
@@ -21,14 +29,23 @@ export default Ember.Component.extend({
   actions: {
     autoComplete(param, e) {
       var self = this;
-      if(e.keyCode === 40){
-        console.log("Should move...");
-        self.get('moveFocusDown')();
-      }
+      //if(e.keyCode === 40){
+      //  console.log("Should move...");
+      //  self.get('moveFocusDown')();
+      //}
       self.get('autoComplete')(this.get('filter'));
     },
-    focus() {
-      this.set('focused', true);
+    focusIn() {
+      this.set('inputFocused', true);
+    },
+    menuFocusIn() {
+      console.log(($(".dropdown").children(".focus").length === 0));
+      console.log("2!");
+      this.set('autoCompleteMenuFocused', true);
+    },
+    focusOut() {
+      this.set('inputFocused', false);
     }
   }
+
 });

@@ -9,9 +9,7 @@ export default Ember.Controller.extend({
           this.set('model',result);
         });
       } else {
-        this.store.findAll('area').then((result) => {
-          this.set('model', result);
-        });
+        this.set('model', null);
       }
     },
     search(param) {

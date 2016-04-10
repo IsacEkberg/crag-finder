@@ -20,7 +20,7 @@ __Frontend:__
 - Search box on front page. (Mobile friendly!)
 - Min-height on area page.
 - Load google maps properly
-
+- Add compass or other sass mixin library. Which adds vendor prefixes.
 
 
 __Later:__

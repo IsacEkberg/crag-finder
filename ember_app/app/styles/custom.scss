@@ -1,8 +1,53 @@
-.wrapper .header{
+.wrapper .top-content{
+
   .brand-index .search-box {
     background-color: rgba(255, 255, 255, 0.5);
     padding-right: 1em;
+
+    -moz-border-radius: 1em;
+    -webkit-border-radius: 1em;
+    border-radius: 1em;
+
+    .input-group{
+      .form-group {
+      margin-top: 1em;
+      margin-bottom: 1em;
+      padding-bottom: 0;
+    }
+
+      .dropdown-menu {
+        min-width: 95%;
+        top: -1em;
+      }
+    }
+
+
+
+    $placeholderCol: rgba(46, 46, 46, 0.89);
+    input {
+      color: black;
+    }
+    ::-webkit-input-placeholder {
+      color: $placeholderCol;
+    }
+
+    :-moz-placeholder { /* Firefox 18- */
+       color: $placeholderCol;
+    }
+
+    ::-moz-placeholder {  /* Firefox 19+ */
+       color: $placeholderCol;
+    }
+
+    :-ms-input-placeholder {
+       color: $placeholderCol;
+    }
   }
 }
 
-
+.top-content{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
