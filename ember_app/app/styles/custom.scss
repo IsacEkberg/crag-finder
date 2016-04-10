@@ -1,4 +1,11 @@
+.main {
+  min-height: 75vh;
+}
+
 .wrapper .top-content{
+  .area-top .brand-index{
+    text-align: left;
+  }
 
   .brand-index .search-box {
     background-color: rgba(255, 255, 255, 0.5);
@@ -9,9 +16,10 @@
     border-radius: 1em;
 
     .input-group{
+
       .form-group {
-      margin-top: 1em;
-      margin-bottom: 1em;
+      margin-top: 1.1em;
+      margin-bottom: 0.8em;
       padding-bottom: 0;
     }
 

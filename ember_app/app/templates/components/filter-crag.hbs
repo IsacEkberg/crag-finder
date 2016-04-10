@@ -7,7 +7,7 @@
     {{!--
     <label class="control-label" for="{{concat elementId '-name'}}"></label>
     --}}
-  <div class="form-group">
+  <div class="form-group label-placeholder {{isFocusedState}}">
   {{input
   list=(concat elementId '-inputID')
   value=filter

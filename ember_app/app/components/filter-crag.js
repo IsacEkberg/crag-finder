@@ -10,6 +10,14 @@ export default Ember.Component.extend({
     return (input);
   }),
 
+  isFocusedState: Ember.computed('inputFocused', function () {
+    if( this.get('inputFocused') ){
+      return 'is-focused';
+    } else {
+      return '';
+    }
+  }),
+
   dropdownClass: Ember.computed('showAutoComplete', function () {
     if( this.get('showAutoComplete') ) {
       return 'open';
