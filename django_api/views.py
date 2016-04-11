@@ -3,8 +3,9 @@ from rest_framework import viewsets, permissions, filters
 from rest_framework.response import Response
 import django_filters
 
-from .models import Area, Parking, Route, RockFace, Club
-from .serializers import AreaSerializer, RockFaceSerializer, ParkingSerializer, RouteSerializer, ClubSerializer
+from .models import Area, Parking, Route, RockFace, Club, Image
+from .serializers import AreaSerializer, RockFaceSerializer, ParkingSerializer, RouteSerializer, ClubSerializer, \
+    ImageSerializer
 
 
 class AreaViewSet(viewsets.ModelViewSet):
@@ -32,3 +33,8 @@ class RouteViewSet(viewsets.ModelViewSet):
 class ClubViewSet(viewsets.ModelViewSet):
     serializer_class = ClubSerializer
     queryset = Club.objects.all()
+
+
+class ImageViewSet(viewsets.ModelViewSet):
+    serializer_class = ImageSerializer
+    queryset = Image.objects.all()

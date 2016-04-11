@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Area, RockFace, Route, Parking, Club
+from .models import Area, RockFace, Route, Parking, Club, Image
 
 
 class AreaSerializer(serializers.ModelSerializer):
@@ -39,3 +39,10 @@ class ClubSerializer(serializers.ModelSerializer):
     class Meta:
         model = Club
         fields = ('id', 'name', 'address', 'email', 'info')
+
+
+class ImageSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Image
+        fields = ('id', 'image')

@@ -1,6 +1,41 @@
+import os
+
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
+from django.utils import timezone
 from reversion import revisions as reversion
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.dateformat import format as date_format
+
+
+def _image_file_path(instance, filename):
+    """Returns the subfolder in which to upload images for articles. This results in media/article/img/<filename>"""
+    return os.path.join(
+        'images', "{:}_{:}".format(date_format(timezone.now(), 'U'), filename)
+    )
+
+
+class Image(models.Model):
+    image = models.ImageField(
+        upload_to=_image_file_path,
+        null=False,
+        blank=False,
+        verbose_name="bild",)
+    modified_by = models.ForeignKey(
+        User,
+        verbose_name='användare',
+        help_text="Uppladdat av.",
+        null=True,
+        on_delete=models.SET_NULL)
+
+    def __str__(self):
+        return os.path.basename(self.image.name)
+
+
+@receiver(pre_delete, sender=Image)
+def image_attachment_delete(sender, instance, **kwargs):
+    instance.image.delete()
 
 
 class Area(models.Model):

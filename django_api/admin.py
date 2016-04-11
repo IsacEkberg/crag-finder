@@ -1,13 +1,10 @@
 from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
-from django.contrib.sites.models import Site
 from django.db.models import Q, ManyToManyField
 from django.utils.safestring import mark_safe
 
 from django_api.forms import RockFaceAdminForm, AreaAdminForm
-from django_api.models import Area, RockFace, Route, Parking, ClubAdmin, Club
-from django.contrib.auth.models import User, Group
-from django.contrib.admin import AdminSite
+from django_api.models import Area, RockFace, Route, Parking, ClubAdmin, Club, Image
 from reversion.admin import VersionAdmin
 
 
@@ -38,27 +35,22 @@ def delete_model(modeladmin, request, queryset):
                 obj.delete()
 delete_model.short_description = "Ta bort markerade"
 
+admin.site.site_title = 'Crag finder admin'
+admin.site.site_header = 'Crag finder admin'
 
-class MyAdminSite(AdminSite):
-    # Text to put at the end of each page's <title>.
-    site_title = 'Crag finder admin'
-
-    # Text to put in each page's <h1>.
-    site_header = 'Crag finder admin'
-
-    # Text to put at the top of the admin index page.
-    index_title = mark_safe(
+# Text to put at the top of the admin index page.
+admin.site.index_title = mark_safe(
         '1. Skapa ett område först och lägg in vilka klippor som finns på platsen och namnen på dem där. <br>'
         '2. Gå in under klippor och lägg in mer information och leder på varje klippa.')
 
-    def has_permission(self, request):
-        """
-        Removed check for is_staff.
-        """
-        return request.user.is_active
 
+def modified_has_permission(request):
+    """
+    Removed check for is_staff.
+    """
+    return request.user.is_active
 
-cragfinder_admin_site = MyAdminSite(name='cragfinderadmin')
+admin.site.has_permission = modified_has_permission
 
 
 class RoutesInline(admin.TabularInline):
@@ -274,9 +266,7 @@ class AdminClub(VersionAdmin):
             Q(pk__in=ClubAdmin.objects.filter(user_id=request.user.pk).values_list('club_id', flat=True)))
 
 
-cragfinder_admin_site.register(Group)
-cragfinder_admin_site.register(User)
-cragfinder_admin_site.register(Area, AreaAdmin)
-cragfinder_admin_site.register(RockFace, RockFaceAdmin)
-cragfinder_admin_site.register(Club, AdminClub)
-cragfinder_admin_site.register(Site)
+admin.site.register(Area, AreaAdmin)
+admin.site.register(RockFace, RockFaceAdmin)
+admin.site.register(Club, AdminClub)
+admin.site.register(Image)
