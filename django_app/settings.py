@@ -62,11 +62,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'rest_framework',
     'reversion',
     'django_api',
     'django_filters'
 ]
+
+SITE_ID = 1
+
 if ON_AWS:
     INSTALLED_APPS += [
         "storages"
@@ -187,7 +191,7 @@ USE_TZ = True
 # Email settings:
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # This is a dummy backend which prints emails as a
                                                                   # normal print() statement (i.e. to stdout)
-EMAIL_HOST_USER = 'noreply@cragfinder.se'
+EMAIL_HOST_USER = 'noreply-cragfinder@jonathananderson.se'
 
 if ON_AWS:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

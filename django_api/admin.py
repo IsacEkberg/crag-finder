@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.contrib.sites.models import Site
 from django.db.models import Q, ManyToManyField
 from django.utils.safestring import mark_safe
 
@@ -278,3 +279,4 @@ cragfinder_admin_site.register(User)
 cragfinder_admin_site.register(Area, AreaAdmin)
 cragfinder_admin_site.register(RockFace, RockFaceAdmin)
 cragfinder_admin_site.register(Club, AdminClub)
+cragfinder_admin_site.register(Site)

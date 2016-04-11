@@ -26,7 +26,8 @@ def development_api_mock(request):
 def reset(request):
     return password_reset(request, template_name='django_api/pw_res.html',
                           email_template_name='django_api/pw_res_email.html',
-                          subject_template_name='django_api/pw_res_email_subject.txt')
+                          subject_template_name='django_api/pw_res_email_subject.txt',
+                          from_email='noreply@cragfinder.se')
 
 
 def reset_confirm(request, uidb64=None, token=None):
