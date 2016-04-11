@@ -16,26 +16,40 @@ def _image_file_path(instance, filename):
     )
 
 
-class Image(models.Model):
+class BaseImage(models.Model):
     image = models.ImageField(
         upload_to=_image_file_path,
         null=False,
         blank=False,
         verbose_name="bild",)
-    modified_by = models.ForeignKey(
-        User,
-        verbose_name='användare',
-        help_text="Uppladdat av.",
-        null=True,
-        on_delete=models.SET_NULL)
+
+    class Meta:
+        verbose_name = 'bild'
+        verbose_name_plural = 'bilder'
 
     def __str__(self):
         return os.path.basename(self.image.name)
 
 
-@receiver(pre_delete, sender=Image)
+@receiver(pre_delete, sender=BaseImage)
 def image_attachment_delete(sender, instance, **kwargs):
     instance.image.delete()
+
+
+class AreaImage(BaseImage):
+    area = models.ForeignKey('Area', related_name="image")
+
+    class Meta:
+        verbose_name = 'områdes bild'
+        verbose_name_plural = 'områdes bild'  # limited to 1 image in admin page.
+
+
+class RockFaceImage(BaseImage):
+    rockface = models.ForeignKey('RockFace', related_name="image")
+
+    class Meta:
+        verbose_name = 'bild på klippan'
+        verbose_name_plural = 'bilder på klippan'
 
 
 class Area(models.Model):

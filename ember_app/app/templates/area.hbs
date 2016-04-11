@@ -48,6 +48,7 @@
                         <div class="tab-pane active" id="description">
                             <div class="row">
                                 <div class="col-md-6">
+                                    <img style="max-width: 100%" src="{{ model.image.firstObject.image }}">
                                     <p>{{model.long_description}}</p>
                                 </div>
                             </div>
@@ -59,6 +60,12 @@
                                         <h2>{{rockface.name}}</h2>
                                         {{#each rockface.routes as |route|}}
                                           <li>{{route.name}}</li>
+                                       {{/each}}
+                                    {{#if rockface.image}}
+                                      <h3>Bilder:</h3>
+                                    {{/if}}
+                                      {{#each rockface.image as |image|}}
+                                          <img style="max-width: 100%" src="{{ image.image }}">
                                        {{/each}}
                                     {{/each}}
                                 </div>

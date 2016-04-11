@@ -1,11 +1,14 @@
 from django.contrib.admin import filters
-from rest_framework import viewsets, permissions, filters
-from rest_framework.response import Response
-import django_filters
+from rest_framework import viewsets, filters
 
-from .models import Area, Parking, Route, RockFace, Club, Image
-from .serializers import AreaSerializer, RockFaceSerializer, ParkingSerializer, RouteSerializer, ClubSerializer, \
-    ImageSerializer
+from .models import Area, Parking, Route, RockFace, Club, AreaImage, RockFaceImage
+from .serializers import (
+    AreaSerializer,
+    RockFaceSerializer,
+    ParkingSerializer,
+    RouteSerializer,
+    ClubSerializer,
+    AreaImageSerializer, RockFaceImageSerializer)
 
 
 class AreaViewSet(viewsets.ModelViewSet):
@@ -35,6 +38,11 @@ class ClubViewSet(viewsets.ModelViewSet):
     queryset = Club.objects.all()
 
 
-class ImageViewSet(viewsets.ModelViewSet):
-    serializer_class = ImageSerializer
-    queryset = Image.objects.all()
+class AreaImageViewSet(viewsets.ModelViewSet):
+    serializer_class = AreaImageSerializer
+    queryset = AreaImage.objects.all()
+
+
+class RockFaceImageViewSet(viewsets.ModelViewSet):
+    serializer_class = RockFaceImageSerializer
+    queryset = RockFaceImage.objects.all()

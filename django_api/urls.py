@@ -8,7 +8,8 @@ router.register(r'rockfaces', views.RockFaceViewSet)
 router.register(r'routes', views.RouteViewSet)
 router.register(r'parkings', views.ParkingViewSet)
 router.register(r'clubs', views.ClubViewSet)
-router.register(r'images', views.ImageViewSet)
+router.register(r'areaimages', views.AreaImageViewSet)
+router.register(r'rockfaceimages', views.RockFaceImageViewSet)
 
 urlpatterns = [
     url(r'^v1/', include(router.urls)),
