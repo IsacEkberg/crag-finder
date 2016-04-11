@@ -14,12 +14,12 @@ Including another URLconf
     2. Import the include() function: from django.conf.urls import url, include
     3. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
+from django.contrib import admin
 from django.contrib.staticfiles import views
 from django.conf.urls import url, include
 from django.conf import settings
 
 from .views import development_index, development_api_mock, reset, reset_done, reset_confirm, reset_complete
-from django_api.admin import cragfinder_admin_site
 
 urlpatterns = [
     url(r'^admin/password_reset_admin/$', view=reset, name='admin_password_reset'),
@@ -27,7 +27,7 @@ urlpatterns = [
     url(r'^admin/password_reset/done/$', view=reset_done, name='password_reset_done'),
     url(r'^admin/password_reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', view=reset_confirm, name='password_reset_confirm'),
     url(r'^admin/password_reset/complete/$', view=reset_complete, name='password_reset_complete'),
-    url(r'^admin/', cragfinder_admin_site.urls),
+    url(r'^admin/', admin.site.urls),
     url(r'^api/', include('django_api.urls'))
 ]
 
