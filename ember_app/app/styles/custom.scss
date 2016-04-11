@@ -2,6 +2,32 @@
   min-height: 75vh;
 }
 
+.search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+}
+
+ul.ui-autocomplete {
+  background-color: #dadada;
+  width: 100%;
+  list-style-type: none;
+  color: black;
+  padding-left: 0;
+
+
+  li{
+    width: 100%;
+    left: 0;
+  }
+
+  li.ui-state-focus {
+    width: 100%;
+    background-color: $brand-success;
+  }
+}
+
 .wrapper .top-content{
   .area-top .brand-index{
     text-align: left;

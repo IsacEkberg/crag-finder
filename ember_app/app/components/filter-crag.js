@@ -1,59 +1,44 @@
 import Ember from 'ember';
-var $ = Ember.$;
 
 export default Ember.Component.extend({
-  filter: null,
-
-  showAutoComplete: Ember.computed('inputFocused', 'autoCompleteMenuFocused', function () {
-    var input = this.get('inputFocused');
-    //var menu = this.get('autoCompleteMenuFocused');
-    return (input);
+  areas: null,
+  names: Ember.computed('areas', function () {
+    var data = this.get('areas');
+    var nameArray = [];
+    data.forEach(function (element) {
+      nameArray.push(element.get('name'));
+    });
+    return nameArray;
   }),
+  didInsertElement() {
+    console.log("adding data");
+    var names = this.get('names');
+    var data = this.get('areas');
+    var wantedArea = this.get('wantedArea');
+    Ember.$("#area-search").autocomplete({
+      source: names,
+      //position: { my : "left top", at: "left top" },
+      //appendTo: Ember.$("#search-results"),
+      select: function (event, ui) {
+        var target = ui.item.value;
+        var targetModel = null;
+        data.forEach(function (element) {
+          if (element.get("name") === target){
+            targetModel = element;
+          }
+          if (targetModel === null) {
+            console.error("Got null as target model to transition to");
+          } else {
+            console.log("Transition!");
+            wantedArea(targetModel);
+          }
 
-  isFocusedState: Ember.computed('inputFocused', function () {
-    if( this.get('inputFocused') ){
-      return 'is-focused';
-    } else {
-      return '';
-    }
-  }),
+        });
 
-  dropdownClass: Ember.computed('showAutoComplete', function () {
-    if( this.get('showAutoComplete') ) {
-      return 'open';
-    } else {
-      return '';
-    }
-  }),
-  filteredList: null,
-  inputFocused: false,
-  autoCompleteMenuFocused: false,
-
-  moveFocusDown: function () {
-    console.log("Moving on.");
-    $('.dropdown-menu').children().first().children().focus();
+      }
+    });
   },
-
-  actions: {
-    autoComplete(param, e) {
-      var self = this;
-      //if(e.keyCode === 40){
-      //  console.log("Should move...");
-      //  self.get('moveFocusDown')();
-      //}
-      self.get('autoComplete')(this.get('filter'));
-    },
-    focusIn() {
-      this.set('inputFocused', true);
-    },
-    menuFocusIn() {
-      console.log(($(".dropdown").children(".focus").length === 0));
-      console.log("2!");
-      this.set('autoCompleteMenuFocused', true);
-    },
-    focusOut() {
-      this.set('inputFocused', false);
-    }
+  willDestroyElement() {
+    Ember.$("#area-search").autocomplete( "destroy" );
   }
-
 });
