@@ -4,9 +4,9 @@
 
 .search-dropdown {
   position: absolute;
-  top: 100%;
+  //top: 100%;
   left: 0;
-  width: 100%;
+  //width: 100%;
 }
 
 ul.ui-autocomplete {
@@ -18,12 +18,12 @@ ul.ui-autocomplete {
 
 
   li{
-    width: 100%;
+    //width: 100%;
     left: 0;
   }
 
   li.ui-state-focus {
-    width: 100%;
+    //width: 100%;
     background-color: $brand-success;
   }
 }
