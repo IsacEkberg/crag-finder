@@ -42,15 +42,30 @@ ON_LOCAL_DEV = False
 if (not ON_LOCAL_DOCKER) and (not ON_AWS) and (not ON_CIRCLECI):
     ON_LOCAL_DEV = True  # Running a local django dev server.
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
+ADMINS = [('Jonathan Anderson', 'jonathan@cragfinder.se'), ('Isac Ekberg', 'isac@cragfinder.se')]
+MANAGERS = ADMINS
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '+tb*r29ojm&cd4t!q*=&62q-n$9@lid!ct5xf-vq=n8o#q(s-l'
+SECRET_KEY = str(os.environ.get('DJANGO_SECRET_KEY'))
 
-DEBUG = True
-ALLOWED_HOSTS = []
+DEBUG = False
+if ON_LOCAL_DEV:
+    DEBUG = True
+ALLOWED_HOSTS = [
+    'd28my8itslow12.cloudfront.net',
+    '.cragfinder.se',
+    'crag-finder-dev.eu-west-1.elasticbeanstalk.com'
+]
+
+import requests
+EC2_PRIVATE_IP = None
+try:
+    EC2_PRIVATE_IP = requests.get('http://169.254.169.254/latest/meta-data/local-ipv4', timeout=0.01).text
+except requests.exceptions.RequestException:
+    pass
+
+if EC2_PRIVATE_IP:
+    ALLOWED_HOSTS.append(EC2_PRIVATE_IP)
 
 
 # Application definition
@@ -193,6 +208,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # This is a du
                                                                   # normal print() statement (i.e. to stdout)
 EMAIL_HOST_USER = 'noreply-cragfinder@jonathananderson.se'
 
+DEFAULT_FROM_EMAIL = 'noreply@cragfinder.se'
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
 if ON_AWS:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     EMAIL_USE_TLS = True
@@ -243,4 +261,3 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',)
 }
-
