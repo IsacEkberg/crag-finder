@@ -49,12 +49,12 @@ def modified_has_permission(request):
     """
     Removed check for is_staff.
     """
-    return request.user.is_active
+    return True
 
-admin.site.has_permission = modified_has_permission
+setattr(admin.site, 'has_permission', modified_has_permission)
 
 
-class BaseImageInline(admin.StackedInline):
+class BaseImageInline(admin.TabularInline):
     model = BaseImage
 
     def image_tag(self, obj):
@@ -65,7 +65,7 @@ class BaseImageInline(admin.StackedInline):
     readonly_fields = ('image_tag',)
     fields = ('image', 'image_tag')
     extra = 1
-    max_num = 1
+    max_num = None
 
     def has_module_permission(self, request):
         return request.user.is_superuser or in_any_club(request.user)
@@ -79,6 +79,7 @@ class BaseImageInline(admin.StackedInline):
 
 class AreaImageInline(BaseImageInline):
     model = AreaImage
+    max_num = 10
 
     def has_change_permission(self, request, obj=None):
         if request.user.is_superuser:
@@ -91,6 +92,7 @@ class AreaImageInline(BaseImageInline):
 class RockFaceImageInline(BaseImageInline):
     model = RockFaceImage
     max_num = None
+    fields = ('image', 'image_tag', 'name', 'description')
 
     def has_change_permission(self, request, obj=None):
         if request.user.is_superuser:
@@ -99,10 +101,19 @@ class RockFaceImageInline(BaseImageInline):
             return in_club(obj.area.clubs.all(), request.user)
         return in_any_club(request.user)
 
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if obj:
+            return in_club(obj.area.clubs.all(), request.user)
+        return False
+
 
 class RoutesInline(admin.TabularInline):
     model = Route
-    fields = ('name', 'grade', 'type', 'short_description', 'length', 'first_ascent_name', 'first_ascent_year')
+    fields = ('route_nr', 'name', 'grade', 'type', 'short_description', 'length', 'first_ascent_name',
+              'first_ascent_year', 'image')
+    extra = 0
 
     def has_module_permission(self, request):
         return request.user.is_superuser or in_any_club(request.user)
@@ -123,6 +134,19 @@ class RoutesInline(admin.TabularInline):
         if obj:
             return in_club(obj.area.clubs.all(), request.user)
         return in_any_club(request.user) or request.user.is_superuser
+
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        db = kwargs.get('using')
+        if 'queryset' not in kwargs:
+            queryset = self.get_field_queryset(db, db_field, request)
+            if queryset is not None:
+                kwargs['queryset'] = queryset
+
+        # I feel obligated to apologize for the next line but i'm stuck after trying 4 different approaches.
+        rockface_pk = int(request.path.split('rockface/')[1].split('/')[0])
+        if str(db_field) == "django_api.Route.image":
+            kwargs['queryset'] = RockFaceImage.objects.filter(rockface=rockface_pk)
+        return db_field.formfield(**kwargs)
 
 
 class ParkingInline(admin.TabularInline):
@@ -179,7 +203,11 @@ class RockFaceAdmin(VersionAdmin):
                 '<a target="_blank" href="{:}">{:}</a>'.format(url, instance.area.name))
         else:
             return '-'
-
+    """
+    <div class="submit-row">
+        <input type="submit" value="Spara och fortsätt redigera" name="_continue">
+    </div>
+    """
     area_link.short_description = 'Area'
     area_link.allow_tags = True
     inlines = [RockFaceImageInline, RoutesInline]
@@ -210,13 +238,13 @@ class RockFaceAdmin(VersionAdmin):
         css = {
             "all": ("django_api/gmaps_admin.css", )
         }
-        js = ("django_api/gmaps_admin.js", )
+        js = ("django_api/gmaps_admin.js", "django_api/save_buttons.js",)
 
     def has_module_permission(self, request):
         return request.user.is_superuser or in_any_club(request.user)
 
     def has_add_permission(self, request):
-        return request.user.is_superuser
+        return False
 
     def has_change_permission(self, request, obj=None):
         if request.user.is_superuser:
