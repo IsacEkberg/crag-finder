@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.contrib.staticfiles import views
 from django.conf.urls import url, include
 from django.conf import settings
+from django.conf.urls.static import static
 
 from .views import development_index, development_api_mock, reset, reset_done, reset_confirm, reset_complete
 
@@ -36,4 +37,4 @@ if settings.DEBUG:
     urlpatterns += [
         url(r'^static/(?P<path>.*)$', views.serve),
         url(r'^$', view=development_index, name="development index")
-    ]
+    ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

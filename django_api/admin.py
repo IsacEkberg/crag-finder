@@ -4,7 +4,7 @@ from django.db.models import Q, ManyToManyField
 from django.utils.safestring import mark_safe
 
 from django_api.forms import RockFaceAdminForm, AreaAdminForm
-from django_api.models import Area, RockFace, Route, Parking, ClubAdmin, Club, Image
+from django_api.models import Area, RockFace, Route, Parking, ClubAdmin, Club, AreaImage, BaseImage, RockFaceImage
 from reversion.admin import VersionAdmin
 
 
@@ -51,6 +51,52 @@ def modified_has_permission(request):
     return request.user.is_active
 
 admin.site.has_permission = modified_has_permission
+
+
+class BaseImageInline(admin.StackedInline):
+    model = BaseImage
+
+    def image_tag(self, obj):
+        return '<img src="{:}" style="max-width: 100%"/>'.format(obj.image.url)
+
+    image_tag.short_description = 'Uppladdad bild'
+    image_tag.allow_tags = True
+    readonly_fields = ('image_tag',)
+    fields = ('image', 'image_tag')
+    extra = 1
+    max_num = 1
+
+    def has_module_permission(self, request):
+        return request.user.is_superuser or in_any_club(request.user)
+
+    def has_add_permission(self, request):
+        return request.user.is_superuser or in_any_club(request.user)
+
+    def has_change_permission(self, request, obj=None):
+        raise NotImplementedError("Implement this method!")
+
+
+class AreaImageInline(BaseImageInline):
+    model = AreaImage
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if obj:
+            return in_club(obj.clubs.all(), request.user)
+        return in_any_club(request.user)
+
+
+class RockFaceImageInline(BaseImageInline):
+    model = RockFaceImage
+    max_num = None
+
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if obj:
+            return in_club(obj.area.clubs.all(), request.user)
+        return in_any_club(request.user)
 
 
 class RoutesInline(admin.TabularInline):
@@ -107,7 +153,7 @@ class ParkingInline(admin.TabularInline):
 
 class RockFaceAdmin(VersionAdmin):
     model = RockFace
-    inlines = [RoutesInline]
+    inlines = [RockFaceImageInline, RoutesInline]
     list_display = ('name',)
     list_display_links = ('name',)
     readonly_fields = ['area']
@@ -188,9 +234,16 @@ class AreaAdmin(VersionAdmin):
     filter = ('name',)
     formfield_overrides = {ManyToManyField: {'widget': FilteredSelectMultiple(
         "", is_stacked=False)}, }
-    inlines = [RockFaceInline,]  # TODO: add parking inline
+    inlines = [AreaImageInline, RockFaceInline,]  # TODO: add parking inline
     form = AreaAdminForm
     actions = [delete_model]
+
+    def image_tag(self, obj):
+        return '<img src="{:}" />'.format(obj.image.image.url)
+
+    image_tag.short_description = 'Uppladdad bild'
+    image_tag.allow_tags = True
+    readonly_fields = ('image_tag',)
     fieldsets = (
         (None, {
             'fields': ('name', 'short_description', 'long_description', 'road_description', )
@@ -269,4 +322,3 @@ class AdminClub(VersionAdmin):
 admin.site.register(Area, AreaAdmin)
 admin.site.register(RockFace, RockFaceAdmin)
 admin.site.register(Club, AdminClub)
-admin.site.register(Image)
