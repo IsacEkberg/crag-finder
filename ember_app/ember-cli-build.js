@@ -4,32 +4,26 @@ var EmberApp = require('ember-cli/lib/broccoli/ember-app');
 
 module.exports = function(defaults) {
   var app = new EmberApp(defaults, {
-    /*sassOptions: {
-        includePaths: [
-          'vendor/tim/sass'
-        ]
-      }*/
-    // Add options here
+
+    //This makes @import('bootstrap') possible in stylesheets/app.scss.
+    compassOptions: {
+      importPath: ['bower_components/bootstrap-sass/assets/stylesheets']
+    }
   });
+  //This is where 3:rd party libaries are added to the build process. (Broccoli)
 
-  //Vendor JS:
-  app.import('vendor/tim/js/bootstrap.min.js');
-  app.import('vendor/tim/js/bootstrap-datepicker.js');
-  app.import('vendor/tim/js/nouislider.min.js');
-  app.import('vendor/tim/js/material.min.js');
-  //app.import('vendor/tim/js/material-kit.js');
-  //app.import('vendor/tim/js/jquery.min.js');
+  //Adds the bootstrap javascript:
+  app.import('bower_components/bootstrap-sass/assets/javascripts/bootstrap.min.js');
 
-  app.import('vendor/tim/css/bootstrap.min.css');
-  app.import('vendor/tim/css/demo.css');
-
+  //Adds font awesome
   app.import('bower_components/font-awesome/css/font-awesome.min.css');
   app.import('bower_components/font-awesome/fonts/fontawesome-webfont.woff', {destDir: 'fonts'});
   app.import('bower_components/font-awesome/fonts/fontawesome-webfont.woff2', {destDir: 'fonts'});
   app.import('bower_components/font-awesome/fonts/fontawesome-webfont.ttf', {destDir: 'fonts'});
 
-
+  //Adds the jquery UI library.
   app.import('bower_components/jquery-ui/jquery-ui.js');
+
   // Use `app.import` to add additional libraries to the generated
   // output files.
   //
