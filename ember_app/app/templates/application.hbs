@@ -1,7 +1,14 @@
-{{nav-bar-material}}
-<div class="wrapper">
-  {{outlet}}
+{{!-- This is the main template --}}
+
+{{!-- Same navbar on all pages --}}
+{{nav-bar}}
+
+{{!-- Main content, wrapped in .conatainer --}}
+<div class="container">
+{{outlet}}
 </div>
+
+{{!-- Footer --}}
 <footer>
     <div class="container">
         <nav class="pull-left">

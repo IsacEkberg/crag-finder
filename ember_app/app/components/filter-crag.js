@@ -18,7 +18,7 @@ export default Ember.Component.extend({
     Ember.$("#area-search").autocomplete({
       source: names,
       //position: { my : "left top", at: "left top" },
-      appendTo: Ember.$("#search-results"),
+      //appendTo: Ember.$("#search-results"),
       select: function (event, ui) {
         var target = ui.item.value;
         var targetModel = null;
