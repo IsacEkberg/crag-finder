@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.core.urlresolvers import reverse
 from django.db.models import Q, ManyToManyField
 from django.utils.safestring import mark_safe
 
@@ -153,11 +154,40 @@ class ParkingInline(admin.TabularInline):
 
 class RockFaceAdmin(VersionAdmin):
     model = RockFace
-    inlines = [RockFaceImageInline, RoutesInline]
-    list_display = ('name',)
-    list_display_links = ('name',)
-    readonly_fields = ['area']
 
+    def clubs(self):
+        return ', '.join(['<a href="{url}">{name}</a>'.format(
+            url=reverse('admin:{:}_{:}_change'.format(x._meta.app_label, x._meta.model_name), args=(x.pk,)),
+            name=x.name) for x in self.area.clubs.all().order_by('name')])
+
+    clubs.allow_tags = True
+    clubs.short_description = 'Klubbar'
+
+    def area_list_link(self):
+        return '<a href="{url}">{name}</a>'.format(
+            url=reverse('admin:{:}_{:}_change'.format(self.area._meta.app_label, self.area._meta.model_name), args=(self.area.pk,)),
+            name=self.area)
+
+    area_list_link.allow_tags = True
+    area_list_link.short_description = 'Område'
+
+    def area_link(self, instance):
+        if instance.id:
+            url = reverse('admin:{:}_{:}_change'.format(instance.area._meta.app_label, instance.area._meta.model_name),
+                          args=(instance.area.id,))
+            return mark_safe(
+                '<a target="_blank" href="{:}">{:}</a>'.format(url, instance.area.name))
+        else:
+            return '-'
+
+    area_link.short_description = 'Area'
+    area_link.allow_tags = True
+    inlines = [RockFaceImageInline, RoutesInline]
+    list_display = ('name', area_list_link, clubs)
+    list_filter = ('area__clubs', 'area')
+    list_display_links = ('name',)
+    readonly_fields = ['area', 'area_link']
+    search_fields = ['name', 'area__clubs__name', 'area__name']
     actions = [delete_model]
 
     def get_actions(self, request):
@@ -168,7 +198,7 @@ class RockFaceAdmin(VersionAdmin):
 
     fieldsets = (
         (None, {
-            'fields': ('area', 'name', 'short_description', 'long_description',)
+            'fields': ('area_link', 'name', 'short_description', 'long_description',)
         }),
         ('Karta', {
             'fields': ('geo_data',),
@@ -205,7 +235,18 @@ class RockFaceAdmin(VersionAdmin):
 
 class RockFaceInline(admin.StackedInline):
     model = RockFace
-    fields = ['name']
+
+    def admin_link(self, instance):
+        if instance.id:
+            url = reverse('admin:{:}_{:}_change'.format(instance._meta.app_label, instance._meta.model_name), args=(instance.id,))
+            return mark_safe('<a target="_blank" href="{:}">Lägg till information, leder karta, bilder etc.</a>'.format(url))
+        else:
+            return 'Tryck "Spara och fortsätt redigera" för att kunna administrera klippan.'
+
+    admin_link.short_description = 'Admin länk'
+    admin_link.allow_tags = True
+    readonly_fields = ('admin_link',)
+    fields = ['name', 'admin_link']
     extra = 0
 
     def has_module_permission(self, request):
@@ -230,8 +271,25 @@ class RockFaceInline(admin.StackedInline):
 
 
 class AreaAdmin(VersionAdmin):
-    list_display = ('name',)
-    filter = ('name',)
+    def clubs(self):
+        return ', '.join(['<a href="{url}">{name}</a>'.format(
+            url=reverse('admin:{:}_{:}_change'.format(x._meta.app_label, x._meta.model_name), args=(x.pk,)),
+            name=x.name) for x in self.clubs.all().order_by('name')])
+
+    clubs.allow_tags = True
+    clubs.short_description = 'Klubbar'
+
+    def crags(self):
+        return ', '.join(['<a href="{url}">{name}</a>'.format(
+            url=reverse('admin:{:}_{:}_change'.format(x._meta.app_label, x._meta.model_name), args=(x.pk,)),
+            name=x.name) for x in self.rockfaces.all()])
+
+    crags.allow_tags = True
+    crags.short_description = 'Klippor'
+
+    list_display = ('name', clubs, crags)
+    list_filter = ('clubs',)
+    search_fields = ['name', 'clubs__name', 'rockfaces__name']
     formfield_overrides = {ManyToManyField: {'widget': FilteredSelectMultiple(
         "", is_stacked=False)}, }
     inlines = [AreaImageInline, RockFaceInline,]  # TODO: add parking inline
@@ -287,8 +345,17 @@ class AddClubAdminInline(admin.TabularInline):
 
 
 class AdminClub(VersionAdmin):
-    list_display = ('name',)
-    filter = ('name',)
+    def areas(self):
+        return ', '.join(['<a href="{url}">{name}</a>'.format(
+            url=reverse('admin:{:}_{:}_change'.format(x._meta.app_label, x._meta.model_name), args=(x.pk,)),
+            name=x.name) for x in self.area_set.all()])
+
+    areas.allow_tags = True
+    areas.short_description = 'Områden'
+
+    search_fields = ['name', 'area__name']
+    list_display = ('name', areas)
+    list_filter = ('name',)
     inlines = [AddClubAdminInline]
 
     def has_module_permission(self, request):
