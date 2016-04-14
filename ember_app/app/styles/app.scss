@@ -1,6 +1,13 @@
+//This is a copy of bootstraps _variables.scss. Modifications to it overrides the bootstrap defaults.
+@import "variables/custom_variables";
+
+// Own scss files:
+@import "navbar/_navbar";
+@import "footer/footer";
+@import "landing_page/landing_page";
+@import "layouts/main_content";
+
 // If we want to modify bootstrap variables we probably can do it using this import. Somehow.
-@import "navbar/_navbar.scss";
-@import "footer/footer.scss";
 @import "bootstrap";  //It works don't worry.
 
 

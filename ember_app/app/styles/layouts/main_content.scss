@@ -1,0 +1,20 @@
+@import "compass/css3/border-radius";
+@import "compass/css3";
+@import "../variables/custom_variables";
+
+.content{
+  @include border-radius(2em 2em);
+  @include box-shadow(black 2px 2px 8px);
+  background-color: #f8f8f8;
+
+
+  @media (max-width: $screen-md) {
+    margin-top: 1em;
+
+  }
+  @media(min-width: $screen-md) {
+    margin-top: 8em;
+  }
+
+
+}

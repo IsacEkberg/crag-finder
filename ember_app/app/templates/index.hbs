@@ -1,29 +1,28 @@
 <div class="row">
     <div class="col-md-8 col-md-offset-2 text-center">
         <div class="brand-index">
-            <h1>Crag finder</h1>
-            <h3>Hitta dina klippor!</h3>
+
             <div class="search-box">
-                <div class="search-bg"></div>
-                {{filter-crag areas=model wantedArea=(action 'wantedArea')}}
+                <h1>Crag finder</h1>
+                <h1><small>Hitta dina klippor!</small></h1>
+              {{filter-crag areas=model wantedArea=(action 'wantedArea')}}
             </div>
         </div>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-md-8 col-md-offset-2">
-        <h2 class="title text-center">Välkomnande text</h2>
-        <h5 class="description">
-            En liten kort text om vad den här sidan är. Alternativt mera lorem ipsum. Etiam at interdum lorem, vitae pharetra nunc. Nulla sit amet augue tortor. Nunc aliquet lectus quis lacus convallis, non pulvinar mi rhoncus.
-        </h5>
+<div class="content container">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <h2 class="title text-center">Välkomnande text</h2>
+            <h5 class="description">
+                En liten kort text om vad den här sidan är. Alternativt mera lorem ipsum. Etiam at interdum lorem, vitae pharetra nunc. Nulla sit amet augue tortor. Nunc aliquet lectus quis lacus convallis, non pulvinar mi rhoncus.
+            </h5>
+        </div>
     </div>
-</div>
 
-<div class="row">
-    <div class="features text-center">
-
-        <div class="col-md-4">
+    <div class="row">
+        <div class="col-md-4 text-center">
             <div class="feature feature-success">
                 <i class="material-icons">directions</i>
                 <h4 class="title">Hitta till din klippa lätt.</h4>
@@ -32,7 +31,7 @@
                 </p>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-4 text-center">
             <div class="feature feature-primary">
                 <i class="material-icons">grade</i>
                 <h4 class="title">Massa bra saker!</h4>
@@ -41,7 +40,7 @@
                 </p>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-4 text-center">
             <div class="feature feature-danger">
                 <i class="material-icons">rowing</i>
                 <h4 class="title">Rodd har inget med saken att göra.</h4>
@@ -51,6 +50,9 @@
             </div>
         </div>
     </div>
+</div>
+
+<div class="bg-image" style="background-image: url('assets/images/mountain-bg.jpg')">
 </div>
 
 

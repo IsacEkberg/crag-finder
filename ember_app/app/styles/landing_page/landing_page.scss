@@ -1,0 +1,40 @@
+@import "../variables/custom_variables";
+@import "compass/css3";
+
+@import "compass/utilities/color";
+
+.brand-index{
+  //Add a bit of margin on larger screens.
+  @media(min-width: $screen-md) {
+    margin-top: 10vh;
+  }
+  .search-box {
+    padding: 1em;
+    background-color: white;
+    z-index: -1;
+    @include border-radius(1em 1em);
+    @include box-shadow(black 2px 2px 8px);
+  }
+}
+
+  .bg-image:after{
+    background: rgba(101,47,142,.64);
+    background: linear-gradient(45deg,rgba(101,47,142,.88) 0,rgba(125,46,185,.45) 100%);
+    background: -moz-linear-gradient(135deg,rgba(101,47,142,.88) 0,rgba(125,46,185,.45) 100%);
+    background: -webkit-linear-gradient(135deg,rgba(101,47,142,.88) 0,rgba(125,46,185,.45) 100%);
+    //@include background-image(linear-gradient(top, blue, red));
+  }
+.bg-image{
+  //transform: translate3d(0px,0px,0px);
+  background: no-repeat center center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  //overflow: hidden;
+  height: 90vh;
+  min-width: 100%;
+  z-index: -10;
+  @include background-size(cover);
+}
+
+
