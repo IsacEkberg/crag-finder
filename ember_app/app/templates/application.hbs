@@ -4,12 +4,14 @@
 {{nav-bar}}
 
 {{!-- Main content, wrapped in .conatainer --}}
-<div class="container">
-{{outlet}}
+<div id="root" class="container">
+  {{outlet}}
+
+  <div id="root_footer"></div>
 </div>
 
 {{!-- Footer --}}
-<footer>
+<div id="footer">
     <div class="container">
         <nav class="pull-left">
             <ul>
@@ -25,4 +27,4 @@
             © Crafinder mega AB
         </nav>
     </div>
-</footer>
+</div>

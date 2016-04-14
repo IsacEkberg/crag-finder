@@ -1,0 +1,6 @@
+
+@import "compass/layout";
+
+// #cssärettjävlaskämt
+@include sticky-footer(72px, '#root', '#root_footer', '#footer')
+
