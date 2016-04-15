@@ -11,7 +11,6 @@ export default Ember.Component.extend({
     return nameArray;
   }),
   didInsertElement() {
-    console.log("adding data");
     var names = this.get('names');
     var data = this.get('areas');
     var wantedArea = this.get('wantedArea');
@@ -21,8 +20,13 @@ export default Ember.Component.extend({
       //appendTo: Ember.$("#search-results"),
       select: function (event, ui) {
         var target = ui.item.value;
+        if (target === null){
+          console.error("Got null as target value in crag-filter component");
+          return;
+        }
         var targetModel = null;
-        data.forEach(function (element) {
+        //TODO: This is executed to many times... Needs fixin.
+        data.forEach(function (element) {  //Find better break-able loop.
           if (element.get("name") === target){
             targetModel = element;
           }
