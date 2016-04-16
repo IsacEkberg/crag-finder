@@ -1,20 +1,17 @@
-<div id="paralax-bg" class="header header-filter" style="transform: translate3d(0px, 0px, 0px); background-image: url('img/mountain-bg2.jpg')">
-</div>
-<div class="container top-content">
-    <div class="area-top">
 
-    <div class="row">
-        <div class="col-md-6">
-            <div class="brand-index">
-            <h1>{{ model.name }}</h1>
-            <h4>{{model.short_description}}</h4>
+<div class="row">
+    <div class="col-md-6">
+        <div class="brand-index">
+            <div class="search-box">
+                <h1>{{ model.name }}</h1>
+                <h4>{{model.short_description}}</h4>
             </div>
         </div>
     </div>
-    </div>
 </div>
-<div class="main main-raised">
-    <div class="container">
+<div class="content">
+    <div class="row">
+
         <div class="col-md-6 col-md-offset-3">
             <div class="profile-tabs">
                 <div class="nav-align-center">
@@ -56,31 +53,31 @@
                         <div class="tab-pane text-center" id="routes">
                             <div class="row">
                                 <div class="col-md-12">
-                                    {{#each model.rockfaces as |rockface|}}
-                                        <h2>{{rockface.name}}</h2>
-                                        {{#each rockface.routes as |route|}}
-                                          <li>{{route.name}}</li>
-                                       {{/each}}
-                                    {{#if rockface.image}}
-                                      <h3>Bilder:</h3>
-                                    {{/if}}
-                                      {{#each rockface.image as |image|}}
-                                          <img style="max-width: 100%" src="{{ image.image }}">
-                                       {{/each}}
+                                  {{#each model.rockfaces as |rockface|}}
+                                      <h2>{{rockface.name}}</h2>
+                                    {{#each rockface.routes as |route|}}
+                                        <li>{{route.name}}</li>
                                     {{/each}}
+                                    {{#if rockface.image}}
+                                        <h3>Bilder:</h3>
+                                    {{/if}}
+                                    {{#each rockface.image as |image|}}
+                                        <img style="max-width: 100%" src="{{ image.image }}">
+                                    {{/each}}
+                                  {{/each}}
                                 </div>
                             </div>
                         </div>
-                      <div class="tab-pane text-center" id="overview">
+                        <div class="tab-pane text-center" id="overview">
                             <div class="row">
                                 <div class="col-md-6">
                                     <p>Här visas en översikt</p>
                                     <p>Och kanske en bild.</p>
 
-                                    {{!--
-                                      Make it work first...
-                                    {{google-maps area=model}}
-                                    --}}
+                                  {{!--
+                                    Make it work first...
+                                  {{google-maps area=model}}
+                                  --}}
                                 </div>
                             </div>
                         </div>
@@ -89,10 +86,10 @@
                                 <div class="col-md-6">
                                     <p>{{model.road_description}}</p>
 
-                                    {{!--
-                                      Make it work first...
-                                    {{google-maps area=model}}
-                                    --}}
+                                  {{!--
+                                    Make it work first...
+                                  {{google-maps area=model}}
+                                  --}}
                                 </div>
                             </div>
                         </div>
@@ -103,6 +100,9 @@
             <!-- End Profile Tabs -->
         </div>
     </div>
+</div>
+
+<div class="bg-image" style="background-image: url('assets/images/mountain-bg.jpg')">
 </div>
 
 {{!--

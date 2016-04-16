@@ -17,5 +17,10 @@
     margin-top: 8em;
   }
 
+  //Since the rows normally have negative margins. But in this case are nested in a .content div.
+  >.row {
+    margin-left: 0;
+    margin-right: 0;
+  }
 
 }
