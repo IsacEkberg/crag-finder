@@ -25,19 +25,18 @@ export default Ember.Component.extend({
           return;
         }
         var targetModel = null;
-        //TODO: This is executed to many times... Needs fixin.
         data.forEach(function (element) {  //Find better break-able loop.
           if (element.get("name") === target){
             targetModel = element;
           }
-          if (targetModel === null) {
-            console.error("Got null as target model to transition to");
-          } else {
-            console.log("Transition!");
-            wantedArea(targetModel);
-          }
-
         });
+        if (targetModel === null) {
+          console.error("Got null as target model to transition to");
+        } else {
+          console.log("Transition!");
+          wantedArea(targetModel);
+        }
+
 
       }
     });
