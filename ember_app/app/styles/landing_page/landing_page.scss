@@ -10,10 +10,22 @@
   }
   .search-box {
     padding: 1em;
-    background-color: white;
+    //background-color: white;
+    h1 {
+      color: $text-icons;
+    }
+    h5 {
+      color: $light-primary-color;
+    }
     z-index: -1;
-    @include border-radius(1em 1em);
-    @include box-shadow(black 2px 2px 8px);
+    //@include border-radius(1em 1em);
+    //@include box-shadow(black 2px 2px 8px);
+    .input-group {
+      width: 100%;
+      input {
+
+      }
+    }
   }
 }
 
@@ -26,12 +38,13 @@
   }
 .bg-image{
   //transform: translate3d(0px,0px,0px);
-  background: no-repeat center center;
+  //background: no-repeat center center;
+  background-color: $primary-color;
   position: absolute;
   top: 0;
   left: 0;
   //overflow: hidden;
-  height: 90vh;
+  min-height: 90vh;
   min-width: 100%;
   z-index: -10;
   @include background-size(cover);

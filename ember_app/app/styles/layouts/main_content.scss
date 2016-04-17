@@ -4,10 +4,9 @@
 
 
 .content{
-  @include border-radius(2em 2em);
-  @include box-shadow(black 2px 2px 8px);
+  //@include border-radius(2em 2em);
+  @include box-shadow(black 2px 2px 18px);
   background-color: #f8f8f8;
-
 
   @media (max-width: $screen-md) {
     margin-top: 1em;
