@@ -1,0 +1,25 @@
+@import "compass/css3/border-radius";
+@import "compass/css3";
+@import "../variables/custom_variables";
+
+
+.content{
+  //@include border-radius(2em 2em);
+  @include box-shadow(black 2px 2px 18px);
+  background-color: #f8f8f8;
+  padding: 1em;
+  @media (max-width: $screen-md) {
+    margin-top: 1em;
+
+  }
+  @media(min-width: $screen-md) {
+    margin-top: 8em;
+  }
+
+  //Since the rows normally have negative margins. But in this case are nested in a .content div.
+  >.row {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+}

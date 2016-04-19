@@ -30,7 +30,15 @@ Starting your project
 Is used in order to run the django app. 
 
 ###Nginx
-See the README.md in crag-finder/nginx. 
+See the README.md in crag-finder/nginx.
+
+###Compass
+Install ruby gems:
+
+`sudo apt-get install ruby-dev`
+
+`sudo gem install compass`
+
 
 ##Start a local server
 1. Make sure Nginx is running att 127.0.0.1:1337

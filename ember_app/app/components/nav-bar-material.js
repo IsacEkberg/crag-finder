@@ -5,42 +5,9 @@ var $ = Ember.$;
 export default Ember.Component.extend({
   transparent: true,
   didRender() {
-    var comp = this;
     this._super(...arguments);
-    console.log("Running material.init()");
-    $.material.init(comp);  //This activates the material.min.js script in vendor. https://github.com/FezVrasta/bootstrap-material-design#materialjs
-    //Note that is for the whole page. I hope.
 
-    //  Activate the Tooltips
-    $('[data-toggle="tooltip"], [rel="tooltip"]').tooltip();
 
-    // Activate Datepicker
-    if($('.datepicker').length !== 0){
-        $('.datepicker').datepicker({
-             weekStart:1
-        });
-    }
-
-    // Activate Popovers
-    $('[data-toggle="popover"]').popover();
-
-    // Active Carousel
-	  $('.carousel').carousel({
-      interval: 400000
-    });
-    var transparent = this.get('transparent');
-    var deb = this.get('debounce');
-    var $big_image = $('#paralax-bg');
-    //var window_width = $(window).width();
-    console.log($big_image);
-
-    var materialKit = this.get('materialKit')(deb, transparent, $big_image);
-
-    //Did not get this to work.
-    //if (window_width >= 768){
-    //  $(window).on('scroll', materialKit.checkScrollForParallax);
-    //}
-    $(window).on('scroll', materialKit.checkScrollForTransparentNavbar);
 
 
   },

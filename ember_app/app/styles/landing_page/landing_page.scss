@@ -1,0 +1,110 @@
+@import "../variables/custom_variables";
+@import "compass/css3";
+
+@import "compass/utilities/color";
+
+.brand-index{
+  //Add a bit of margin on larger screens.
+  @media(min-width: $screen-md) {
+    margin-top: 10vh;
+  }
+  .search-box {
+    padding: 1em;
+    //background-color: white;
+    h1 {
+      color: $text-icons;
+    }
+    h5 {
+      color: $light-primary-color;
+    }
+    z-index: -1;
+    //@include border-radius(1em 1em);
+    //@include box-shadow(black 2px 2px 8px);
+    .input-group {
+      width: 100%;
+      input {
+        @include border-radius(1em 1em);
+        padding-left: 2em;
+        background-color: $light-primary-color;
+        text-align: center;
+        &:focus{
+          background-color: lighten($light-primary-color, 2);
+        }
+      }
+    }
+  }
+}
+
+  .bg-image:after{
+    background: rgba(101,47,142,.64);
+    background: linear-gradient(45deg,rgba(101,47,142,.88) 0,rgba(125,46,185,.45) 100%);
+    background: -moz-linear-gradient(135deg,rgba(101,47,142,.88) 0,rgba(125,46,185,.45) 100%);
+    background: -webkit-linear-gradient(135deg,rgba(101,47,142,.88) 0,rgba(125,46,185,.45) 100%);
+    //@include background-image(linear-gradient(top, blue, red));
+  }
+.bg-image{
+  //transform: translate3d(0px,0px,0px);
+  //background: no-repeat center center;
+  background-color: $primary-color;
+  position: absolute;
+  top: 0;
+  left: 0;
+  //overflow: hidden;
+  min-height: 90vh;
+  min-width: 100%;
+  z-index: -10;
+  @include background-size(cover);
+}
+.ui-autocomplete {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  float: left;
+  display: none;
+  min-width: 160px;
+  _width: 160px;
+  padding: 4px 0;
+  margin: 2px 0 0 0;
+  list-style: none;
+  background-color: #ffffff;
+  border-color: #ccc;
+  border-color: rgba(0, 0, 0, 0.2);
+  border-style: solid;
+  border-width: 1px;
+
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+
+  -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+
+  -webkit-background-clip: padding-box;
+  -moz-background-clip: padding;
+  background-clip: padding-box;
+
+  *border-right-width: 2px;
+  *border-bottom-width: 2px;
+
+  .ui-menu-item {
+    display: block;
+    padding: 3px 15px;
+    clear: both;
+    font-weight: normal;
+    line-height: 18px;
+    color: #555555;
+    white-space: nowrap;
+
+    &.ui-state-focus {
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 0px;
+      -webkit-border-radius: 0px;
+      -moz-border-radius: 0px;
+      background: $brand-primary none;
+    }
+  }
+}
+

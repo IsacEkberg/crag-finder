@@ -1,0 +1,88 @@
+<div class="row">
+  {{!-- This is the desktop nav --}}
+    <div class="col-xs-12">
+        <ul class="nav nav-pills" role="tablist">
+            <li class="active">
+                <a href="#description" role="tab" data-toggle="tab" aria-expanded="true">
+                    <i class="fa fa-globe"></i>
+                    <span class="hidden-xs hidden-sm">- Översikt</span>
+                    {{!-- This is where the descr. and overview goes --}}
+                </a>
+            </li>
+            <li class="">
+                <a href="#routes" role="tab" data-toggle="tab" aria-expanded="false">
+                    <i class="fa fa-tasks"></i>
+                    <span class="hidden-sm hidden-xs">- Leder</span>
+                    {{!-- This is where the routes goes--}}
+                </a>
+            </li>
+            <li>
+                <a href="#find" role="tab" data-toggle="tab">
+                    <i class="fa fa-map-signs"></i>
+                    <span class="hidden-sm hidden-xs">- Vägbeskrivning</span>
+                  {{!-- This is where the maps/find goes --}}
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="tab-content gallery">
+    <div class="tab-pane active" id="description">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="visible-xs visible-sm">
+                    <h1>{{ model.name }}</h1>
+                    <h4>{{model.short_description}}</h4>
+                </div>
+                <img style="max-width: 100%" src="{{ model.image.firstObject.image }}">
+                <p>{{model.long_description}}</p>
+            </div>
+        </div>
+    </div>
+    <div class="tab-pane text-center" id="routes">
+        <div class="row">
+            <div class="col-md-12">
+              {{#each model.rockfaces as |rockface|}}
+                  <h2>{{rockface.name}}</h2>
+                {{#each rockface.routes as |route|}}
+                    <li>{{route.name}}</li>
+                {{/each}}
+                {{#if rockface.image}}
+                    <h3>Bilder:</h3>
+                {{/if}}
+                {{#each rockface.image as |image|}}
+                    <img style="max-width: 100%" src="{{ image.image }}">
+                {{/each}}
+              {{/each}}
+            </div>
+        </div>
+    </div>
+    <div class="tab-pane text-center" id="overview">
+        <div class="row">
+            <div class="col-md-6">
+                <p>Här visas en översikt</p>
+                <p>Och kanske en bild.</p>
+
+              {{!--
+                Make it work first...
+              {{google-maps area=model}}
+              --}}
+            </div>
+        </div>
+    </div>
+    <div class="tab-pane text-center" id="find">
+        <div class="row">
+            <div class="col-md-6">
+                <p>{{model.road_description}}</p>
+
+              {{!--
+                Make it work first...
+              {{google-maps area=model}}
+              --}}
+            </div>
+        </div>
+    </div>
+
+</div>
+<!-- End Profile Tabs -->
