@@ -1,0 +1,26 @@
+@import "../variables/custom_variables";
+
+.content {
+  .nav {
+    margin-top: -1em;
+    margin-bottom: 1em;
+  }
+
+  .nav-justified > li {
+    display: table-cell;
+    width: 1%;
+  }
+  .nav-justified > li > a {
+    margin-bottom: 0;
+  }
+}
+
+
+.above-content {
+  margin-top: 12vh;
+  .area-info {
+    background-color: rgba($gray-lighter, 0.4);
+    padding: 1em;
+  }
+
+}

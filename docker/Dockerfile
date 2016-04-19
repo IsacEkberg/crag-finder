@@ -16,20 +16,20 @@ ENV DEBIAN_FRONTEND noninteractive
 ##############################################################################
 
 RUN apt-get update \
-    && apt-get upgrade -y \
-    && apt-get install -y
+    && apt-get upgrade -qq -y \
+    && apt-get install -qq -y
 
-RUN apt-get install -y apt-utils
+RUN apt-get install -y -qq apt-utils
 # Libs required for geospatial libraries on Debian...
-RUN apt-get -y install binutils libproj-dev gdal-bin
+RUN apt-get -y -qq install binutils libproj-dev gdal-bin
 
 ##############################################################################
 # A Few pip installs not commonly in requirements.txt
 ##############################################################################
 
-RUN apt-get install -y nano wget
+RUN apt-get install -y -qq nano wget
 # build dependencies for postgres and image bindings
-RUN apt-get install -y python-imaging python-psycopg2
+RUN apt-get install -y -qq python-imaging python-psycopg2
 
 ##############################################################################
 # setup startup script for gunicord WSGI service
@@ -45,7 +45,7 @@ RUN mkdir -p /var/run/webapp/ && chown -R webapp /var/run/webapp/ && chmod -R u+
 # Install and configure supervisord
 ##############################################################################
 
-RUN apt-get install -y supervisor
+RUN apt-get install -y -qq supervisor
 RUN mkdir -p /var/log/supervisor
 ADD ./supervisor_conf.d/webapp.conf /etc/supervisor/conf.d/webapp.conf
 
@@ -54,9 +54,15 @@ ADD ./supervisor_conf.d/webapp.conf /etc/supervisor/conf.d/webapp.conf
 ##############################################################################
 # Install nodejs:
 RUN curl -sL https://deb.nodesource.com/setup_5.x | bash -
-RUN apt-get install -y nodejs
+RUN apt-get install -y -qq nodejs
 # Update npm:
 # RUN npm install npm -g
+
+##############################################################################
+# Install compass
+##############################################################################
+RUN apt-get install -y -qq ruby ruby-dev
+RUN gem install -N compass
 
 ##############################################################################
 # Install dependencies and run scripts.
@@ -64,7 +70,7 @@ RUN apt-get install -y nodejs
 RUN npm install -g ember-cli@2.4
 RUN npm install -g bower
 
-# Hopefully caches... Might do the same to npm & bower if it works.
+# If the add file is not modified can the steps following be cached. => npm install doesn't take forever.
 ADD requirements.txt    /var/projects/mysite/requirements.txt
 WORKDIR /var/projects/mysite
 RUN pip install -r requirements.txt

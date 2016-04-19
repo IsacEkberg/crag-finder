@@ -1,14 +1,12 @@
-
 <div class="input-group">
-    {{!-- The concat thing in the label and input id is to guarantee uniqueness --}}
-    <span class="input-group-addon">
-        <i class="material-icons">search</i>
-    </span>
-    <label class="control-label" for="area-search"></label>
-  <div class="form-group">
-    <input id="area-search" class="form-control" placeholder="Sök här">
+    <input id="area-search"
+           type="text"
+           class="form-control"
+           placeholder="&#xf002;   Sök efter din klippa här..."
+           onfocus="this.placeholder = ''"
+           onblur="this.placeholder = '&#xf002;   Sök efter din klippa här...'"
+           style="font-family: FontAwesome, Arial">
     <div id="search-results" class="search-dropdown">
-    </div>
-  </div>
+    </div><!-- /input-group -->
 </div>
 

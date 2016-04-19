@@ -11,29 +11,32 @@ export default Ember.Component.extend({
     return nameArray;
   }),
   didInsertElement() {
-    console.log("adding data");
     var names = this.get('names');
     var data = this.get('areas');
     var wantedArea = this.get('wantedArea');
     Ember.$("#area-search").autocomplete({
       source: names,
       //position: { my : "left top", at: "left top" },
-      appendTo: Ember.$("#search-results"),
+      //appendTo: Ember.$("#search-results"),
       select: function (event, ui) {
         var target = ui.item.value;
+        if (target === null){
+          console.error("Got null as target value in crag-filter component");
+          return;
+        }
         var targetModel = null;
-        data.forEach(function (element) {
+        data.forEach(function (element) {  //Find better break-able loop.
           if (element.get("name") === target){
             targetModel = element;
           }
-          if (targetModel === null) {
-            console.error("Got null as target model to transition to");
-          } else {
-            console.log("Transition!");
-            wantedArea(targetModel);
-          }
-
         });
+        if (targetModel === null) {
+          console.error("Got null as target model to transition to");
+        } else {
+          console.log("Transition!");
+          wantedArea(targetModel);
+        }
+
 
       }
     });

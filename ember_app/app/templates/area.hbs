@@ -1,120 +1,21 @@
-<div id="paralax-bg" class="header header-filter" style="transform: translate3d(0px, 0px, 0px); background-image: url('img/mountain-bg2.jpg')">
-</div>
-<div class="container top-content">
-    <div class="area-top">
-
-    <div class="row">
-        <div class="col-md-6">
-            <div class="brand-index">
-            <h1>{{ model.name }}</h1>
-            <h4>{{model.short_description}}</h4>
+<div class="row">
+    <div class="col-md-6 hidden-sm hidden-xs">
+        <div class="above-content">
+            <div class="area-info">
+                <h1>{{ model.name }}</h1>
+                <h4>{{model.short_description}}</h4>
+                <div class="area-info-bg"></div>
             </div>
         </div>
     </div>
-    </div>
 </div>
-<div class="main main-raised">
-    <div class="container">
-        <div class="col-md-6 col-md-offset-3">
-            <div class="profile-tabs">
-                <div class="nav-align-center">
-                    <ul class="nav nav-pills" role="tablist">
-                        <li class="active">
-                            <a href="#description" role="tab" data-toggle="tab" aria-expanded="true">
-                                <i class="material-icons">description</i> Description
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#overview" role="tab" data-toggle="tab" aria-expanded="false">
-                                <i class="material-icons">terrain</i>
-                                Overview
-                            </a>
-                        </li>
-                        <li class="">
-                            <a href="#routes" role="tab" data-toggle="tab" aria-expanded="false">
-                                <i class="material-icons">list</i>
-                                Routes
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#find" role="tab" data-toggle="tab">
-                                <i class="material-icons">map</i>
-                                Find it
-                            </a>
-                        </li>
-                    </ul>
-
-                    <div class="tab-content gallery">
-                        <div class="tab-pane active" id="description">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <img style="max-width: 100%" src="{{ model.image.firstObject.image }}">
-                                    <p>{{model.long_description}}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="tab-pane text-center" id="routes">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    {{#each model.rockfaces as |rockface|}}
-                                        <h2>{{rockface.name}}</h2>
-                                        {{#each rockface.routes as |route|}}
-                                          <li>{{route.name}}</li>
-                                       {{/each}}
-                                    {{#if rockface.image}}
-                                      <h3>Bilder:</h3>
-                                    {{/if}}
-                                      {{#each rockface.image as |image|}}
-                                          <img style="max-width: 100%" src="{{ image.image }}">
-                                       {{/each}}
-                                    {{/each}}
-                                </div>
-                            </div>
-                        </div>
-                      <div class="tab-pane text-center" id="overview">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <p>Här visas en översikt</p>
-                                    <p>Och kanske en bild.</p>
-
-                                    {{!--
-                                      Make it work first...
-                                    {{google-maps area=model}}
-                                    --}}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="tab-pane text-center" id="find">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <p>{{model.road_description}}</p>
-
-                                    {{!--
-                                      Make it work first...
-                                    {{google-maps area=model}}
-                                    --}}
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-            <!-- End Profile Tabs -->
-        </div>
-    </div>
+<div class="content">
+  {{area-nav model=model}}
 </div>
 
 {{!--
-
-      {{#if model.severalRockfaces}}
-      {{else}}
-        {{#each model.rockfaces as |rockface|}}
-              {{#each rockface.routes as |route|}}
-                  li>{{route.name}}li>
-              {{/each}}
-        {{/each}}
-      {{/if}}
-
+<div class="bg-image" style="background-image: url('assets/images/mountain-bg.jpg')">
+</div>
 --}}
-
+<div class="bg-image">
+</div>

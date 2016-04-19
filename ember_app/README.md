@@ -12,14 +12,14 @@ You will need the following things properly installed on your computer.
 * [Bower](http://bower.io/)
 * [Ember CLI](http://www.ember-cli.com/)
 * [PhantomJS](http://phantomjs.org/)
-
+* [Gem](https://rubygems.org/)
 ## Installation
 
 * `git clone <repository-url>` this repository
 * change into the new directory
 * `npm install`
 * `bower install`
-
+* `gem install compass`
 ## Running / Development
 
 * `ember server`
