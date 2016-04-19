@@ -1,5 +1,11 @@
 <div class="input-group">
-    <input id="area-search" type="text" class="form-control" placeholder="Sök efter...">
+    <input id="area-search"
+           type="text"
+           class="form-control"
+           placeholder="&#xf002;   Sök efter din klippa här..."
+           onfocus="this.placeholder = ''"
+           onblur="this.placeholder = '&#xf002;   Sök efter din klippa här...'"
+           style="font-family: FontAwesome, Arial">
     <div id="search-results" class="search-dropdown">
     </div><!-- /input-group -->
 </div>

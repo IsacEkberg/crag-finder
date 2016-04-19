@@ -23,7 +23,13 @@
     .input-group {
       width: 100%;
       input {
-
+        @include border-radius(1em 1em);
+        padding-left: 2em;
+        background-color: $light-primary-color;
+        text-align: center;
+        &:focus{
+          background-color: lighten($light-primary-color, 2);
+        }
       }
     }
   }

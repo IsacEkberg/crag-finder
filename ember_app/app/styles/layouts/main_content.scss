@@ -7,7 +7,7 @@
   //@include border-radius(2em 2em);
   @include box-shadow(black 2px 2px 18px);
   background-color: #f8f8f8;
-
+  padding: 1em;
   @media (max-width: $screen-md) {
     margin-top: 1em;
 

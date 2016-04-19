@@ -1,19 +1,26 @@
 @import "../variables/custom_variables";
 
-.nav-justified > li {
+.content {
+  .nav {
+    margin-top: -1em;
+    margin-bottom: 1em;
+  }
+
+  .nav-justified > li {
     display: table-cell;
     width: 1%;
-}
-.nav-justified > li > a {
-  margin-bottom: 0;
+  }
+  .nav-justified > li > a {
+    margin-bottom: 0;
+  }
 }
 
-.brand-index .area-info .area-info-bg{
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba($gray-lighter, 0.4);
-  z-index: -1;
+
+.above-content {
+  margin-top: 12vh;
+  .area-info {
+    background-color: rgba($gray-lighter, 0.4);
+    padding: 1em;
+  }
+
 }
