@@ -1,0 +1,9 @@
+@import "../variables/custom_variables";
+.loading-spinner{
+  i.fa {
+    color: $text-icons;
+  }
+}
+.footer_pusher{
+  min-height: 90vh;
+}
