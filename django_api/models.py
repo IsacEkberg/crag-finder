@@ -1,5 +1,6 @@
 import os
 
+from django.core.validators import RegexValidator
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django.utils import timezone
@@ -90,7 +91,18 @@ class RockFace(models.Model):
     """
     name = models.CharField(verbose_name="namn", max_length=150)
     area = models.ForeignKey(Area, verbose_name="område", related_name="rockfaces")
-    geo_data = models.CharField(verbose_name="plats för klippan", max_length=3000, blank=False, null=True)
+    geo_data = models.CharField(verbose_name="plats för klippan",
+                                max_length=3000,
+                                blank=False,
+                                null=True,
+                                validators=[
+                                    RegexValidator(
+                                        regex=r"^(\(\d{1,3}\.\d+, \d{1,3}\.\d+\);)*$",
+                                        message="Geo-data is malformed.",
+                                        code="invalid",
+                                        ),
+                                    ]
+                                )
 
     short_description = models.CharField(verbose_name="kort beskrivning", max_length=300, null=True, blank=True)
     long_description = models.CharField(verbose_name="lång beskrivning", max_length=4000, null=True, blank=True)
