@@ -111,7 +111,7 @@ class RockFaceImageInline(BaseImageInline):
 
 class RoutesInline(admin.TabularInline):
     model = Route
-    fields = ('route_nr', 'name', 'grade', 'type', 'short_description', 'length', 'first_ascent_name',
+    fields = ('route_nr', 'name', 'grade', 'type', 'short_description', 'length', 'nr_of_bolts', 'first_ascent_name',
               'first_ascent_year', 'image')
     extra = 0
 

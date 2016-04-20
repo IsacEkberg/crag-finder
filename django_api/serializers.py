@@ -54,11 +54,15 @@ class RouteSerializer(serializers.ModelSerializer):
             'name',
             'rock_face',
             'grade',
+            'grade_hr',
             'type',
+            'type_hr',
             'short_description',
             'first_ascent_name',
             'first_ascent_year',
-            'length')
+            'length',
+            'nr_of_bolts'
+        )
 
 
 class ClubSerializer(serializers.ModelSerializer):

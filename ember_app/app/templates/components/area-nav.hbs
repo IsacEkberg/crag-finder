@@ -46,7 +46,7 @@
               {{#each model.rockfaces as |rockface|}}
                   <h2>{{rockface.name}}</h2>
                 {{#each rockface.routes as |route|}}
-                    <li>{{route.name}}</li>
+                    <li>{{route.name}}, {{route.grade_hr}} ({{route.type_hr}}{{#if route.nr_of_bolts}}, {{route.nr_of_bolts}}bb{{/if}}){{#if route.length}}, {{route.length}}m{{/if}}</li>
                 {{/each}}
                 {{#if rockface.image}}
                     <h3>Bilder:</h3>

@@ -128,15 +128,30 @@ class Route(models.Model):
     first_ascent_year = models.PositiveIntegerField(verbose_name="år för första bestigning", blank=True, null=True)
     length = models.PositiveIntegerField(verbose_name="längd", blank=True, null=True)
     image = models.ForeignKey(RockFaceImage, verbose_name="bild", blank=True, null=True)
+    nr_of_bolts = models.PositiveIntegerField(verbose_name="antal bultar", blank=True, null=True)
 
     #Grade constans
     PROJECT = 'no'
+
+    FOUR_A_MINUS = '4a-'
     FOUR_A = '4a'
+    FOUR_A_PLUS = '4a+'
+    FOUR_B_MINUS = '4b-'
     FOUR_B = '4b'
+    FOUR_B_PLUS = '4b+'
+    FOUR_C_MINUS = '4c-'
     FOUR_C = '4c'
+    FOUR_C_PLUS = '4c+'
+
+    FIVE_A_MINUS = '5a-'
     FIVE_A = '5a'
+    FIVE_A_PLUS = '5a+'
+    FIVE_B_MINUS = '5b-'
     FIVE_B = '5b'
+    FIVE_B_PLUS = '5b+'
+    FIVE_C_MINUS = '5c-'
     FIVE_C = '5c'
+    FIVE_C_PLUS = '5c+'
 
     SIX_A_MINUS = '6a-'
     SIX_A = '6a'
@@ -180,12 +195,27 @@ class Route(models.Model):
 
     GRADE_CHOICES = (  # fun.
         (PROJECT, 'Ej graderad'),
+
+        (FOUR_A_MINUS, '4a-'),
         (FOUR_A, '4a'),
+        (FOUR_A_PLUS, '4a+'),
+        (FOUR_B_MINUS, '4b-'),
         (FOUR_B, '4b'),
+        (FOUR_B_PLUS, '4b+'),
+        (FOUR_C_MINUS, '4c-'),
         (FOUR_C, '4c'),
+        (FOUR_C_PLUS, '4c+'),
+
+        (FIVE_A_MINUS, '5a-'),
         (FIVE_A, '5a'),
+        (FIVE_A_PLUS, '5a+'),
+        (FIVE_B_MINUS, '5b-'),
         (FIVE_B, '5b'),
+        (FIVE_B_PLUS, '5b+'),
+        (FIVE_C_MINUS, '5c-'),
         (FIVE_C, '5c'),
+        (FIVE_C_PLUS, '5c+'),
+
         (SIX_A_MINUS, '6a-'),
         (SIX_A, '6a'),
         (SIX_A_PLUS, '6a+'),
@@ -195,6 +225,7 @@ class Route(models.Model):
         (SIX_C_MINUS, '6c-'),
         (SIX_C, '6c'),
         (SIX_C_PLUS, '6c+'),
+
         (SEVEN_A_MINUS, '7a-'),
         (SEVEN_A, '7a'),
         (SEVEN_A_PLUS, '7a+'),
@@ -204,6 +235,7 @@ class Route(models.Model):
         (SEVEN_C_MINUS, '7c-'),
         (SEVEN_C, '7c'),
         (SEVEN_C_PLUS, '7c+'),
+
         (EIGHT_A_MINUS, '8a-'),
         (EIGHT_A, '8a'),
         (EIGHT_A_PLUS, '8a+'),
@@ -213,6 +245,7 @@ class Route(models.Model):
         (EIGHT_C_MINUS, '8c-'),
         (EIGHT_C, '8c'),
         (EIGHT_C_PLUS, '8c+'),
+
         (NINE_A_MINUS, '9a-'),
         (NINE_A, '9a'),
         (NINE_A_PLUS, '9a+'),
@@ -255,6 +288,14 @@ class Route(models.Model):
 
     def __str__(self):
         return self.name + ' (' + self.rock_face.area.name + ')'
+
+    @property
+    def grade_hr(self):
+        return [item for item in Route.GRADE_CHOICES if item[0] == self.grade][0][1]
+
+    @property
+    def type_hr(self):
+        return [item for item in Route.TYPE_CHOICES if item[0] == self.type][0][1]
 
 
 class Club(models.Model):
