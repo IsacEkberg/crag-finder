@@ -46,11 +46,17 @@ class AreaImage(BaseImage):
 
 class RockFaceImage(BaseImage):
     rockface = models.ForeignKey('RockFace', related_name="image")
-
+    name = models.CharField(verbose_name="namn", max_length=255, null=True, blank=False)
+    description = models.TextField(verbose_name="kort beskrivning av bilden", null=True, blank=True)
     class Meta:
         verbose_name = 'bild på klippan'
         verbose_name_plural = 'bilder på klippan'
 
+    def __str__(self):
+        try:
+            return "{:}-{:}".format(self.rockface.name, self.name)
+        except:
+            return "{:}-{:}".format(self.rockface.name,  os.path.basename(self.image.name))
 
 class Area(models.Model):
     """
@@ -114,12 +120,14 @@ class Route(models.Model):
     """
     A route belongs to a rockface.
     """
+    route_nr = models.CharField(verbose_name="Lednummer", max_length=50, blank=True, null=True)
     name = models.CharField(verbose_name="namn", max_length=150)
     rock_face = models.ForeignKey(RockFace, verbose_name="klippa", related_name="routes")
     short_description = models.CharField(verbose_name="kort beskrivning", max_length=160, blank=True, null=True)
     first_ascent_name = models.CharField(verbose_name="första bestigarens namn", max_length=160, blank=True, null=True)
     first_ascent_year = models.PositiveIntegerField(verbose_name="år för första bestigning", blank=True, null=True)
     length = models.PositiveIntegerField(verbose_name="längd", blank=True, null=True)
+    image = models.ForeignKey(RockFaceImage, verbose_name="bild", blank=True, null=True)
 
     #Grade constans
     PROJECT = 'no'
