@@ -5,7 +5,7 @@ from django.db.models import Q, ManyToManyField
 from django.utils.safestring import mark_safe
 
 from django_api.forms import RockFaceAdminForm, AreaAdminForm
-from django_api.models import Area, RockFace, Route, Parking, ClubAdmin, Club, AreaImage, BaseImage, RockFaceImage
+from django_api.models import Area, RockFace, Route, Parking, ClubAdmin, Club, AreaImage, RockFaceImage
 from reversion.admin import VersionAdmin
 
 
@@ -49,13 +49,12 @@ def modified_has_permission(request):
     """
     Removed check for is_staff.
     """
-    return True
+    return request.user.is_active
 
 setattr(admin.site, 'has_permission', modified_has_permission)
 
 
 class BaseImageInline(admin.TabularInline):
-    model = BaseImage
 
     def image_tag(self, obj):
         return '<img src="{:}" style="max-width: 100%"/>'.format(obj.image.url)
@@ -417,3 +416,4 @@ class AdminClub(VersionAdmin):
 admin.site.register(Area, AreaAdmin)
 admin.site.register(RockFace, RockFaceAdmin)
 admin.site.register(Club, AdminClub)
+

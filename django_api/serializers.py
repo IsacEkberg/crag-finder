@@ -61,7 +61,9 @@ class RouteSerializer(serializers.ModelSerializer):
             'first_ascent_name',
             'first_ascent_year',
             'length',
-            'nr_of_bolts'
+            'nr_of_bolts',
+            'route_nr',
+            'image'
         )
 
 
@@ -83,4 +85,4 @@ class RockFaceImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RockFaceImage
-        fields = ('id', 'image', 'rockface')
+        fields = ('id', 'image', 'rockface', 'route_set')

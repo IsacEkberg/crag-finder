@@ -1,7 +1,5 @@
 import os
 
-from django.db.models.signals import pre_delete
-from django.dispatch import receiver
 from django.utils import timezone
 from reversion import revisions as reversion
 from django.db import models
@@ -16,38 +14,33 @@ def _image_file_path(instance, filename):
     )
 
 
-class BaseImage(models.Model):
+class AreaImage(models.Model):
     image = models.ImageField(
         upload_to=_image_file_path,
         null=False,
         blank=False,
-        verbose_name="bild",)
+        verbose_name="bild", )
 
-    class Meta:
-        verbose_name = 'bild'
-        verbose_name_plural = 'bilder'
-
-    def __str__(self):
-        return os.path.basename(self.image.name)
-
-
-@receiver(pre_delete, sender=BaseImage)
-def image_attachment_delete(sender, instance, **kwargs):
-    instance.image.delete()
-
-
-class AreaImage(BaseImage):
     area = models.ForeignKey('Area', related_name="image")
 
     class Meta:
         verbose_name = 'områdes bild'
         verbose_name_plural = 'områdes bild'  # limited to 1 image in admin page.
 
+    def __str__(self):
+        return os.path.basename(self.image.name)
 
-class RockFaceImage(BaseImage):
+
+class RockFaceImage(models.Model):
+    image = models.ImageField(
+        upload_to=_image_file_path,
+        null=False,
+        blank=False,
+        verbose_name="bild", )
     rockface = models.ForeignKey('RockFace', related_name="image")
     name = models.CharField(verbose_name="namn", max_length=255, null=True, blank=False)
     description = models.TextField(verbose_name="kort beskrivning av bilden", null=True, blank=True)
+
     class Meta:
         verbose_name = 'bild på klippan'
         verbose_name_plural = 'bilder på klippan'
@@ -58,15 +51,35 @@ class RockFaceImage(BaseImage):
         except:
             return "{:}-{:}".format(self.rockface.name,  os.path.basename(self.image.name))
 
+
 class Area(models.Model):
     """
     A climbing area. Contains several crags. A parking or more.
     """
     name = models.CharField(verbose_name="namn", max_length=150, unique=True)
     short_description = models.CharField(verbose_name="kort beskrivning", max_length=300, null=True, blank=False)
-    long_description = models.CharField(verbose_name="lång beskrivning",max_length=4000, null=True, blank=False)
-    road_description = models.CharField(verbose_name="väg beskrivning",max_length=4000, null=True, blank=False)
+    long_description = models.CharField(verbose_name="lång beskrivning", max_length=4000, null=True, blank=False)
+    road_description = models.CharField(verbose_name="väg beskrivning", max_length=4000, null=True, blank=False)
     clubs = models.ManyToManyField('Club', verbose_name="ansvarig klubb/klubbar", blank=False)
+    replacing = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        default=None,
+        on_delete=models.SET_NULL)
+
+    BEING_REVIEWED = 'b'
+    APPROVED = 'a'
+    STATUSES = (
+        (BEING_REVIEWED, "väntar på godkännande"),
+        (APPROVED, "Godkänt")
+    )
+    status = models.CharField(
+        max_length=1,
+        choices=STATUSES,
+        default=APPROVED,
+        blank=False,
+        null=False)
 
     class Meta:
         verbose_name = 'område'
@@ -95,6 +108,24 @@ class RockFace(models.Model):
     short_description = models.CharField(verbose_name="kort beskrivning", max_length=300, null=True, blank=True)
     long_description = models.CharField(verbose_name="lång beskrivning", max_length=4000, null=True, blank=True)
 
+    replacing = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        default=None,
+        on_delete=models.SET_NULL)
+    BEING_REVIEWED = 'b'
+    APPROVED = 'a'
+    STATUSES = (
+        (BEING_REVIEWED, "väntar på godkännande"),
+        (APPROVED, "Godkänt")
+    )
+    status = models.CharField(
+        max_length=1,
+        choices=STATUSES,
+        default=APPROVED,
+        blank=False,
+        null=False)
     class Meta:
         verbose_name = 'klippa'
         verbose_name_plural = 'klippor'
@@ -129,6 +160,26 @@ class Route(models.Model):
     length = models.PositiveIntegerField(verbose_name="längd", blank=True, null=True)
     image = models.ForeignKey(RockFaceImage, verbose_name="bild", blank=True, null=True)
     nr_of_bolts = models.PositiveIntegerField(verbose_name="antal bultar", blank=True, null=True)
+
+    replacing = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        default=None,
+        on_delete=models.SET_NULL)
+
+    BEING_REVIEWED = 'b'
+    APPROVED = 'a'
+    STATUSES = (
+        (BEING_REVIEWED, "väntar på godkännande"),
+        (APPROVED, "Godkänt")
+    )
+    status = models.CharField(
+        max_length=1,
+        choices=STATUSES,
+        default=APPROVED,
+        blank=False,
+        null=False)
 
     #Grade constans
     PROJECT = 'no'
@@ -323,8 +374,10 @@ class ClubAdmin(models.Model):
     def __str__(self):
         return str(self.user)
 
-reversion.register(Area, follow=["rockfaces", "parking"])
-reversion.register(RockFace, follow=["routes"])
+reversion.register(Area, follow=["rockfaces", "parking", "image"])
+reversion.register(RockFace, follow=["routes", "image"])
 reversion.register(Parking)
 reversion.register(Route)
+reversion.register(AreaImage)
+reversion.register(RockFaceImage)
 reversion.register(Club, follow=['area_set'])

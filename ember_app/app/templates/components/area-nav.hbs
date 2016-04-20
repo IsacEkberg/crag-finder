@@ -45,14 +45,21 @@
             <div class="col-md-12">
               {{#each model.rockfaces as |rockface|}}
                   <h2>{{rockface.name}}</h2>
-                {{#each rockface.routes as |route|}}
-                    <li>{{route.name}}, {{route.grade_hr}} ({{route.type_hr}}{{#if route.nr_of_bolts}}, {{route.nr_of_bolts}}bb{{/if}}){{#if route.length}}, {{route.length}}m{{/if}}</li>
-                {{/each}}
+
                 {{#if rockface.image}}
                     <h3>Bilder:</h3>
                 {{/if}}
                 {{#each rockface.image as |image|}}
                     <img style="max-width: 100%" src="{{ image.image }}">
+                  {{#each image.route_set as |route|}}
+                      <li>{{#if route.route_nr}}{{route.route_nr}}, {{/if}}{{route.name}}, {{route.grade_hr}} ({{route.type_hr}}{{#if route.nr_of_bolts}}, {{route.nr_of_bolts}}bb{{/if}}){{#if route.length}}, {{route.length}}m{{/if}}</li>
+                  {{/each}}
+                {{/each}}
+                  <h3>Leder utan bild:</h3>
+                {{#each rockface.routes as |route|}}
+                  {{#unless route.image }}
+                    <li>{{#if route.route_nr}}{{route.route_nr}}, {{/if}}{{route.name}}, {{route.grade_hr}} ({{route.type_hr}}{{#if route.nr_of_bolts}}, {{route.nr_of_bolts}}bb{{/if}}){{#if route.length}}, {{route.length}}m{{/if}}</li>
+                  {{/unless}}
                 {{/each}}
               {{/each}}
             </div>

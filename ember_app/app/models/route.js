@@ -11,5 +11,7 @@ export default DS.Model.extend({
   first_ascent_name: DS.attr(),
   first_ascent_year: DS.attr(),
   length: DS.attr(),
-  nr_of_bolts: DS.attr()
+  nr_of_bolts: DS.attr(),
+  route_nr: DS.attr(),
+  image: DS.attr()
 });
