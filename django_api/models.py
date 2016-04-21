@@ -1,7 +1,6 @@
 import os
 
 from django.core.validators import RegexValidator
-from django.dispatch import receiver
 from django.utils import timezone
 from reversion import revisions as reversion
 from django.db import models
@@ -15,6 +14,20 @@ def _image_file_path(instance, filename):
         'images', "{:}_{:}".format(date_format(timezone.now(), 'U'), filename)
     )
 
+# These two doesn't show on the site
+BEING_REVIEWED_CHANGE = 'c'
+BEING_REVIEWED_NEW = 'n'
+
+# These two does show up on the site
+BEING_REVIEWED_DELETE = 'd'
+APPROVED = 'a'
+
+STATUSES = (
+    (BEING_REVIEWED_CHANGE, "Ändring som väntar på godkännande"),
+    (BEING_REVIEWED_NEW, "Ny som väntar på godkännande"),
+    (BEING_REVIEWED_DELETE, "Väntar på att bli borttagen"),
+    (APPROVED, "Godkänt")
+)
 
 class AreaImage(models.Model):
     image = models.ImageField(
@@ -24,6 +37,13 @@ class AreaImage(models.Model):
         verbose_name="bild", )
 
     area = models.ForeignKey('Area', related_name="image")
+
+    status = models.CharField(
+        max_length=1,
+        choices=STATUSES,
+        default=APPROVED,
+        blank=False,
+        null=False)
 
     class Meta:
         verbose_name = 'områdes bild'
@@ -42,6 +62,13 @@ class RockFaceImage(models.Model):
     rockface = models.ForeignKey('RockFace', related_name="image")
     name = models.CharField(verbose_name="namn", max_length=255, null=True, blank=False)
     description = models.TextField(verbose_name="kort beskrivning av bilden", null=True, blank=True)
+
+    status = models.CharField(
+        max_length=1,
+        choices=STATUSES,
+        default=APPROVED,
+        blank=False,
+        null=False)
 
     class Meta:
         verbose_name = 'bild på klippan'
@@ -70,12 +97,6 @@ class Area(models.Model):
         default=None,
         on_delete=models.SET_NULL)
 
-    BEING_REVIEWED = 'b'
-    APPROVED = 'a'
-    STATUSES = (
-        (BEING_REVIEWED, "väntar på godkännande"),
-        (APPROVED, "Godkänt")
-    )
     status = models.CharField(
         max_length=1,
         choices=STATUSES,
@@ -127,12 +148,7 @@ class RockFace(models.Model):
         blank=True,
         default=None,
         on_delete=models.SET_NULL)
-    BEING_REVIEWED = 'b'
-    APPROVED = 'a'
-    STATUSES = (
-        (BEING_REVIEWED, "väntar på godkännande"),
-        (APPROVED, "Godkänt")
-    )
+
     status = models.CharField(
         max_length=1,
         choices=STATUSES,
@@ -181,12 +197,6 @@ class Route(models.Model):
         default=None,
         on_delete=models.SET_NULL)
 
-    BEING_REVIEWED = 'b'
-    APPROVED = 'a'
-    STATUSES = (
-        (BEING_REVIEWED, "väntar på godkännande"),
-        (APPROVED, "Godkänt")
-    )
     status = models.CharField(
         max_length=1,
         choices=STATUSES,
@@ -367,6 +377,19 @@ class Club(models.Model):
     address = models.TextField(verbose_name="adress")
     email = models.EmailField(verbose_name="epost",)
     info = models.TextField(verbose_name="Information om klubben",)
+    replacing = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        default=None,
+        on_delete=models.SET_NULL)
+
+    status = models.CharField(
+        max_length=1,
+        choices=STATUSES,
+        default=APPROVED,
+        blank=False,
+        null=False)
 
     class Meta:
         verbose_name = 'klubb'
@@ -376,16 +399,7 @@ class Club(models.Model):
         return self.name
 
 
-class ClubAdmin(models.Model):
-    club = models.ForeignKey(Club, verbose_name="klubb")
-    user = models.ForeignKey(User, verbose_name="användare")
-
-    class Meta:
-        verbose_name = 'klubbadministratör'
-        verbose_name_plural = 'klubbadministratörer'
-
-    def __str__(self):
-        return str(self.user)
+User.add_to_class('is_trusted', models.BooleanField(default=False, verbose_name="är betrodd"))
 
 reversion.register(Area, follow=["rockfaces", "parking", "image"])
 reversion.register(RockFace, follow=["routes", "image"])

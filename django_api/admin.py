@@ -1,39 +1,39 @@
 from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+from django.db import transaction
 from django.db.models import Q, ManyToManyField
 from django.utils.safestring import mark_safe
 
 from django_api.forms import RockFaceAdminForm, AreaAdminForm
-from django_api.models import Area, RockFace, Route, Parking, ClubAdmin, Club, AreaImage, RockFaceImage
+from django_api.models import Area, RockFace, Route, Parking, Club, AreaImage, RockFaceImage, BEING_REVIEWED_CHANGE, \
+BEING_REVIEWED_NEW, BEING_REVIEWED_DELETE, APPROVED
+from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+
 from reversion.admin import VersionAdmin
 
 
-def in_any_club(user):
-    if user.pk in ClubAdmin.objects.all().values_list('user_id', flat=True):
-        return True
-    return False
-
-
-def in_club(clubs, user):
-    for club in clubs:
-        if user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
-            return True
-    return False
+def is_trusted(user):
+    try:
+        return user.is_trusted
+    except:
+        return False
 
 
 def delete_model(modeladmin, request, queryset):
-    if request.user.is_superuser:
+    if request.user.is_superuser or \
+            ((str(modeladmin) == "django_api.{:}".format(str(AreaAdmin.__name__)) or
+              str(modeladmin) == "django_api.{:}".format(str(RockFaceAdmin.__name__))
+              ) and is_trusted(request.user)):
         for obj in queryset:
             obj.delete()
-    elif str(modeladmin) == "django_api.{:}".format(str(AreaAdmin.__name__)):
+    else:
         for obj in queryset:
-            if obj and in_club(obj.clubs.all(), request.user):
-                obj.delete()
-    elif str(modeladmin) == "django_api.{:}".format(str(RockFaceAdmin.__name__)):
-        for obj in queryset:
-            if obj and in_club(obj.area.clubs.all(), request.user):
-                obj.delete()
+            obj.status = BEING_REVIEWED_DELETE
+            obj.save()
+
+
 delete_model.short_description = "Ta bort markerade"
 
 admin.site.site_title = 'Crag finder admin'
@@ -44,14 +44,15 @@ admin.site.index_title = mark_safe(
         '1. Skapa ett område först och lägg in vilka klippor som finns på platsen och namnen på dem där. <br>'
         '2. Gå in under klippor och lägg in mer information och leder på varje klippa.')
 
+DjangoUserAdmin.list_display += ('is_trusted',)  # don't forget the commas
+DjangoUserAdmin.list_filter += ('is_trusted',)
+DjangoUserAdmin.fieldsets += (('CragFinder', {'fields': ('is_trusted', )}),)  # Monkey patching at its finest.
 
-def modified_has_permission(request):
-    """
-    Removed check for is_staff.
-    """
-    return request.user.is_active
 
-setattr(admin.site, 'has_permission', modified_has_permission)
+class UserAdmin(DjangoUserAdmin):
+    def save_model(self, request, obj, form, change):
+        obj.is_staff = True
+        obj.save()
 
 
 class BaseImageInline(admin.TabularInline):
@@ -67,45 +68,24 @@ class BaseImageInline(admin.TabularInline):
     max_num = None
 
     def has_module_permission(self, request):
-        return request.user.is_superuser or in_any_club(request.user)
+        return True
 
     def has_add_permission(self, request):
-        return request.user.is_superuser or in_any_club(request.user)
+        return True
 
     def has_change_permission(self, request, obj=None):
-        raise NotImplementedError("Implement this method!")
+        raise True
 
 
 class AreaImageInline(BaseImageInline):
     model = AreaImage
     max_num = 10
 
-    def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.clubs.all(), request.user)
-        return in_any_club(request.user)
-
 
 class RockFaceImageInline(BaseImageInline):
     model = RockFaceImage
     max_num = None
     fields = ('image', 'image_tag', 'name', 'description')
-
-    def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.area.clubs.all(), request.user)
-        return in_any_club(request.user)
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.area.clubs.all(), request.user)
-        return False
 
 
 class RoutesInline(admin.TabularInline):
@@ -115,24 +95,7 @@ class RoutesInline(admin.TabularInline):
     extra = 0
 
     def has_module_permission(self, request):
-        return request.user.is_superuser or in_any_club(request.user)
-
-    def has_add_permission(self, request):
-        return request.user.is_superuser or in_any_club(request.user)
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.area.clubs.all(), request.user)
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.area.clubs.all(), request.user)
-        return in_any_club(request.user) or request.user.is_superuser
+        return True
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         db = kwargs.get('using')
@@ -154,25 +117,7 @@ class ParkingInline(admin.TabularInline):
     extra = 0
 
     def has_module_permission(self, request):
-
-        return request.user.is_superuser or in_any_club(request.user)
-
-    def has_add_permission(self, request):
-        return request.user.is_superuser or in_any_club(request.user)
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.clubs.all(), request.user)
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.clubs.all(), request.user)
-        return in_any_club(request.user)
+        return request.user.is_superuser or is_trusted(request.user)
 
 
 class RockFaceAdmin(VersionAdmin):
@@ -240,24 +185,10 @@ class RockFaceAdmin(VersionAdmin):
         js = ("django_api/gmaps_admin.js", "django_api/save_buttons.js",)
 
     def has_module_permission(self, request):
-        return request.user.is_superuser or in_any_club(request.user)
+        return True
 
     def has_add_permission(self, request):
         return False
-
-    def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.area.clubs.all(), request.user)
-        return in_any_club(request.user)
-
-    def get_queryset(self, request):
-        qs = super(RockFaceAdmin, self).get_queryset(request)
-        if request.user.is_superuser:
-            return qs
-        return qs.filter(
-            Q(area__clubs__id__in=ClubAdmin.objects.filter(user_id=request.user.pk).values_list('club_id', flat=True)))
 
 
 class RockFaceInline(admin.StackedInline):
@@ -277,24 +208,7 @@ class RockFaceInline(admin.StackedInline):
     extra = 0
 
     def has_module_permission(self, request):
-        return request.user.is_superuser or in_any_club(request.user)
-
-    def has_add_permission(self, request):
-        return request.user.is_superuser or in_any_club(request.user)
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.clubs.all(), request.user)
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.clubs.all(), request.user)
-        return in_any_club(request.user)
+        return True
 
 
 class AreaAdmin(VersionAdmin):
@@ -345,33 +259,14 @@ class AreaAdmin(VersionAdmin):
         return actions
 
     def has_module_permission(self, request):
-        return request.user.is_superuser or in_any_club(request.user)
+        return True
 
     def has_add_permission(self, request):
-        return request.user.is_superuser or in_any_club(request.user)
-
-    def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.clubs.all(), request.user)
-        return in_any_club(request.user)
-
-    def get_queryset(self, request):
-        qs = super(AreaAdmin, self).get_queryset(request)
-        if request.user.is_superuser:
-            return qs
-        return qs.filter(
-            Q(clubs__id__in=ClubAdmin.objects.filter(user_id=request.user.pk).values_list('club_id', flat=True)))
-
-
-class AddClubAdminInline(admin.TabularInline):
-    model = ClubAdmin
-    fields = ('user',)
-    extra = 1
+        return True
 
 
 class AdminClub(VersionAdmin):
+    # TODO: Add warning about current pending changes.
     def areas(self):
         return ', '.join(['<a href="{url}">{name}</a>'.format(
             url=reverse('admin:{:}_{:}_change'.format(x._meta.app_label, x._meta.model_name), args=(x.pk,)),
@@ -381,38 +276,69 @@ class AdminClub(VersionAdmin):
     areas.short_description = 'Områden'
 
     search_fields = ['name', 'area__name']
-    list_display = ('name', areas)
+    list_display = ('name', 'status', 'replacing', areas)
     list_filter = ('name',)
-    inlines = [AddClubAdminInline]
+    fields = ('name', 'address', 'email', 'info')
+    readonly_fields = ('replacing',)
+    actions = [delete_model]
+
+    @transaction.atomic
+    def save_model(self, request, obj, form, change):
+        if request.user.is_superuser or request.user.is_trusted:
+            if change and obj.replacing:
+                tmp_pk = obj.pk
+                obj.pk = obj.replacing.pk
+                obj.replacing = None
+                obj.status = APPROVED
+                obj.save()
+                Club.objects.get(pk=tmp_pk).delete()
+            else:
+                obj.status = APPROVED
+                obj.save()
+        elif change:
+            tmp_pk = obj.pk
+            obj.pk = None
+            obj.status = BEING_REVIEWED_CHANGE
+            obj.save()
+            obj.replacing = Club.objects.get(pk=tmp_pk)
+            obj.save()
+        else:
+            obj.status = BEING_REVIEWED_NEW
+            obj.save()
+
+    def delete_model(self, request, obj):
+        if request.user.is_superuser or request.user.is_trusted:
+            obj.delete()
+        else:
+            obj.status = BEING_REVIEWED_DELETE
+            obj.save()
 
     def has_module_permission(self, request):
         # stupid check django performs to not get 403 when clicking on app label
-        return in_any_club(request.user) or request.user.is_superuser
+        return True
 
     def get_actions(self, request):
         actions = super(AdminClub, self).get_actions(request)
         if not request.user.is_superuser:
-            return None
+            del actions['delete_selected']
         return actions
 
     def has_add_permission(self, request):
-        return request.user.is_superuser
+        return True
 
     def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return obj.pk in ClubAdmin.objects.filter(user_id=request.user.pk).values_list('club_id', flat=True)
-        return in_any_club(request.user)
+        return True
+
+    def has_delete_permission(self, request, obj=None):
+        return True
 
     def get_queryset(self, request):
-        qs = super(AdminClub, self).get_queryset(request)
-        if request.user.is_superuser:
-            return qs
-        return qs.filter(
-            Q(pk__in=ClubAdmin.objects.filter(user_id=request.user.pk).values_list('club_id', flat=True)))
-
-
+        if request.user.is_superuser or request.user.is_trusted:
+            return super(AdminClub, self).get_queryset(request)
+        else:
+            return super(AdminClub, self).get_queryset(request).filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)
 admin.site.register(Area, AreaAdmin)
 admin.site.register(RockFace, RockFaceAdmin)
 admin.site.register(Club, AdminClub)
