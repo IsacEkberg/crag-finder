@@ -30,9 +30,10 @@
 <div class="tab-content gallery">
     <div class="tab-pane active" id="description">
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-xs-12">
+                <h3 class="hidden-sm hidden-xs">Översikt för området</h3>
                 <div class="visible-xs visible-sm">
-                    <h1>{{ model.name }}</h1>
+                    <h1>Översikt för {{ model.name }}</h1>
                     <h4>{{model.short_description}}</h4>
                 </div>
                 <img style="max-width: 100%" src="{{ model.image.firstObject.image }}">
@@ -75,10 +76,13 @@
     </div>
     <div class="tab-pane text-center" id="find">
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-xs-12 col-md-3">
+                <h3>Vägbeskrivning</h3>
                 <p>{{model.road_description}}</p>
-                {{google-maps area=model findTabActive=findTabActive}}
             </div>
+          <div class="col-xs-12 col-md-9">
+                {{google-maps area=model findTabActive=findTabActive}}
+          </div>
         </div>
     </div>
 
