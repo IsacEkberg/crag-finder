@@ -1,20 +1,30 @@
 import Ember from 'ember';
-/* globals DS */
 /* globals $ */
 export default Ember.Component.extend({
   area: null,
-  gmapsService: Ember.inject.service('gmaps-service'),
-  new_map_service: DS.PromiseObject(),
   map: null,
-  mapOptions: function () {
-    return {
-      center: {lat: 60.662, lng: 15.681},
-      zoom: 6
-    };
-  },
+  findTabActive: null,
+  renderListener: Ember.observer('findTabActive', function () {
+    console.log("renderListener - tripped");
+    if(this.get('findTabActive')){
+      console.log("renderListener - executing");
+      this.renderMap();
+      return true;
+    }
+    return false;
+  }),
+  gmapsService: Ember.inject.service('gmaps-service'),
 
   didInsertElement() {
-    function parse_geo_data(s) {
+    console.log("renderListener - didInsertElement");
+    this._super(...arguments);
+
+    //TODO. Move some logic here to speed up tab switch?
+  },
+  //action: {
+    renderMap() {
+      console.log("gmaps-component - renderMap()");
+      function parse_geo_data(s) {
       if(!s){
         console.log("No previous data");
         return;
@@ -28,53 +38,62 @@ export default Ember.Component.extend({
         if(vals2 === "") {return;}
         arr2.push({lat:parseFloat(vals2[0]), lng:parseFloat(vals2[1])});
       });
-      console.log(arr2);
-      return arr2;
-    }
+        console.log(arr2);
+        return arr2;
+      }
+      var area = this.get('area');
+      var map = this.get('map');
 
-    this._super(...arguments);
-    var area = this.get('area');
+      //This loads the google maps script using a ember service.
+      this.get('gmapsService').getScript().then(function (google) {
+        console.log("google-maps comp: Initiating gmaps");
+        console.log(google);
 
-    //This loads the google maps script using a ember service.
-    this.get('gmapsService').loadScript().then(function () {
-      /* globals google */
-      console.log("Initiating gmaps");
-      var map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 6,
-        center: {lat: 60.662, lng: 15.681}
-      });
-
-      //This loads all the rockfaces and places poly lines:
-      var rockfaceRef = area.get('rockfaces');
-      rockfaceRef.then((rockfaces) => {
-
-        //This bound box is used to calculate the center of the points in this area.
-        var bound = new google.maps.LatLngBounds();
-
-        rockfaces.forEach(function (value) {
-          var marker_array = parse_geo_data(value.get('geo_data'));
-          console.log(marker_array);
-
-          //Create a polyline from each marker point.
-          var poly = new google.maps.Polyline({
-            path: marker_array,
-            strokeColor: '#000000',
-            strokeOpacity: 1.0,
-            strokeWeight: 3,
-            editable: false
-          });
-          poly.setMap(map);
-
-          //add points to boundbox.
-          marker_array.forEach(function (el) {
-            bound.extend(new google.maps.LatLng(el));
-          });
-
+        map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 6,
+          center: {lat: 60.662, lng: 15.681}
         });
-        //TODO: Save/calculate zoom level. In django model?
-        map.setCenter(bound.getCenter());
-      });
 
-    });
-  }
+        //This loads all the rockfaces and places poly lines:
+        var rockfaceRef = area.get('rockfaces');
+        console.log("google-maps comp: Loading rockfaces...");
+        rockfaceRef.then((rockfaces) => {
+          console.log("google-maps comp: Done loading rockfaces.");
+          //This bound box is used to calculate the center of the points in this area.
+          var bound = new google.maps.LatLngBounds();
+          console.log("google-maps comp: bound-box:");
+          console.log(bound);
+          rockfaces.forEach(function (value) {
+            var marker_array = parse_geo_data(value.get('geo_data'));
+            console.log("google-maps comp: marker_array:");
+            console.log(marker_array);
+
+            //Create a polyline from each marker point.
+            var poly = new google.maps.Polyline({
+              path: marker_array,
+              strokeColor: '#000000',
+              strokeOpacity: 1.0,
+              strokeWeight: 3,
+              editable: false
+            });
+            console.log("google-maps comp: Poly line:");
+            console.log(poly);
+            poly.setMap(map);
+
+            //add points to boundbox.
+            marker_array.forEach(function (el) {
+              bound.extend(new google.maps.LatLng(el));
+            });
+
+          });
+          //TODO: Save/calculate zoom level. In django model?
+          console.log("google-maps comp: Final bound box:");
+          console.log(bound.getCenter().lat(), bound.getCenter().lng());
+          google.maps.event.trigger(map, 'resize');
+          //this.set('map', map);
+          //map.setCenter(bound.getCenter());
+        });
+      });
+    }
+  //}
 });
