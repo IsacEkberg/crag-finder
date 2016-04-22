@@ -45,18 +45,43 @@
         <div class="row">
             <div class="col-md-12">
               {{#each model.rockfaces as |rockface|}}
-                  <h2>{{rockface.name}}</h2>
+                  <h2>Leder på {{rockface.name}}</h2>
 
                 {{#if rockface.image}}
-                    <h3>Bilder:</h3>
+                    <p>Nedan visas bilder på klipp sidor med tillhörande leder.</p>
                 {{/if}}
                 {{#each rockface.image as |image|}}
                     <img style="max-width: 100%" src="{{ image.image }}">
+                    <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                          <tr>
+                              <th>Nummer</th>
+                              <th>Lednamn</th>
+                              <th>Grad</th>
+                              <th>Typ</th>
+                              <th>Antal bultar</th>
+                              <th>Längd</th>
+                          </tr>
+                        </thead>
+                        <tbody>
                   {{#each image.route_set as |route|}}
-                      <li>{{#if route.route_nr}}{{route.route_nr}}, {{/if}}{{route.name}}, {{route.grade_hr}} ({{route.type_hr}}{{#if route.nr_of_bolts}}, {{route.nr_of_bolts}}bb{{/if}}){{#if route.length}}, {{route.length}}m{{/if}}</li>
+                          <tr>
+                              <td>{{#if route.route_nr}}{{route.route_nr}}{{/if}}</td>
+                              <td>{{route.name}}</td>
+                              <td>{{route.grade_hr}}</td>
+                              <td>{{route.type_hr}}</td>
+                              <td>{{route.nr_of_bolts}}</td>
+                              <td>{{route.length}}</td>
+                          </tr>
                   {{/each}}
+                        </tbody>
+                    </table>
+                    </div>
                 {{/each}}
+
                   <h3>Leder utan bild:</h3>
+                  <p>Det finns även uppgifter om dess leder som saknar en bild:</p>
                 {{#each rockface.routes as |route|}}
                   {{#unless route.image }}
                     <li>{{#if route.route_nr}}{{route.route_nr}}, {{/if}}{{route.name}}, {{route.grade_hr}} ({{route.type_hr}}{{#if route.nr_of_bolts}}, {{route.nr_of_bolts}}bb{{/if}}){{#if route.length}}, {{route.length}}m{{/if}}</li>
