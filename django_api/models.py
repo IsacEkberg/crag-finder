@@ -3,6 +3,7 @@ import os
 from django.core.validators import RegexValidator
 from django.dispatch import receiver
 from django.utils import timezone
+from pagedown.widgets import AdminPagedownWidget
 from reversion import revisions as reversion
 from django.db import models
 from django.contrib.auth.models import User
@@ -17,12 +18,11 @@ def _image_file_path(instance, filename):
 
 
 class MarkDownTextField(models.TextField):
-    pass
+    widget = AdminPagedownWidget
 
 
 class MarkDownCharField(models.CharField):
-
-    pass
+    widget = AdminPagedownWidget
 
 
 class AreaImage(models.Model):

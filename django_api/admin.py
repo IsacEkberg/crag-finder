@@ -320,8 +320,6 @@ class AreaAdmin(VersionAdmin):
     search_fields = ['name', 'clubs__name', 'rockfaces__name']
     formfield_overrides = {
         ManyToManyField: {'widget': FilteredSelectMultiple("", is_stacked=False)},
-        MarkDownCharField: {'widget': AdminPagedownWidget},
-        MarkDownTextField: {'widget': AdminPagedownWidget}
     }
     inlines = [AreaImageInline, RockFaceInline,]  # TODO: add parking inline
     form = AreaAdminForm
