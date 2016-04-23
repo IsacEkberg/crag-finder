@@ -3,9 +3,10 @@ from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.core.urlresolvers import reverse
 from django.db.models import Q, ManyToManyField
 from django.utils.safestring import mark_safe
-
+from pagedown.widgets import AdminPagedownWidget
+from django.db import models
 from django_api.forms import RockFaceAdminForm, AreaAdminForm
-from django_api.models import Area, RockFace, Route, Parking, ClubAdmin, Club, AreaImage, RockFaceImage
+from django_api.models import *
 from reversion.admin import VersionAdmin
 
 
@@ -317,8 +318,11 @@ class AreaAdmin(VersionAdmin):
     list_display = ('name', clubs, crags)
     list_filter = ('clubs',)
     search_fields = ['name', 'clubs__name', 'rockfaces__name']
-    formfield_overrides = {ManyToManyField: {'widget': FilteredSelectMultiple(
-        "", is_stacked=False)}, }
+    formfield_overrides = {
+        ManyToManyField: {'widget': FilteredSelectMultiple("", is_stacked=False)},
+        MarkDownCharField: {'widget': AdminPagedownWidget},
+        MarkDownTextField: {'widget': AdminPagedownWidget}
+    }
     inlines = [AreaImageInline, RockFaceInline,]  # TODO: add parking inline
     form = AreaAdminForm
     actions = [delete_model]

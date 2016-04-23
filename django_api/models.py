@@ -16,6 +16,15 @@ def _image_file_path(instance, filename):
     )
 
 
+class MarkDownTextField(models.TextField):
+    pass
+
+
+class MarkDownCharField(models.CharField):
+
+    pass
+
+
 class AreaImage(models.Model):
     image = models.ImageField(
         upload_to=_image_file_path,
@@ -60,7 +69,7 @@ class Area(models.Model):
     """
     name = models.CharField(verbose_name="namn", max_length=150, unique=True)
     short_description = models.CharField(verbose_name="kort beskrivning", max_length=300, null=True, blank=False)
-    long_description = models.CharField(verbose_name="lång beskrivning", max_length=4000, null=True, blank=False)
+    long_description = MarkDownTextField(verbose_name="lång beskrivning", max_length=4000, null=True, blank=False)
     road_description = models.CharField(verbose_name="väg beskrivning", max_length=4000, null=True, blank=False)
     clubs = models.ManyToManyField('Club', verbose_name="ansvarig klubb/klubbar", blank=False)
     replacing = models.ForeignKey(
