@@ -1,3 +1,4 @@
+from captcha.fields import CaptchaField
 from django import forms
 from django.contrib.auth.models import User
 
@@ -25,6 +26,8 @@ class NewUserForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(NewUserForm, self).__init__(*args, **kwargs)
         self.fields['email'].required = True
+
+    captcha = CaptchaField()
 
     class Meta():
         model = User

@@ -83,6 +83,7 @@ INSTALLED_APPS = [
     'django_api',
     'django_filters',
     'pagedown',
+    'captcha',
 ]
 
 SITE_ID = 1
