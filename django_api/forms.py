@@ -1,5 +1,5 @@
 from django import forms
-
+from django.contrib.auth.models import User
 
 class RockFaceAdminForm(forms.ModelForm):
 
@@ -19,3 +19,13 @@ class AreaAdminForm(forms.ModelForm):
         self.fields['short_description'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '2'})
         #self.fields['long_description'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '5'})
         #self.fields['road_description'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '5'})
+
+
+class NewUserForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(NewUserForm, self).__init__(*args, **kwargs)
+        self.fields['email'].required = True
+
+    class Meta():
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name']

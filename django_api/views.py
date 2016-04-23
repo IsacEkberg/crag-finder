@@ -1,6 +1,9 @@
 from django.contrib.admin import filters
+from django.shortcuts import render, redirect
+from django.contrib import messages
 from rest_framework import viewsets, filters
 
+from .forms import NewUserForm
 from .models import Area, Parking, Route, RockFace, Club, AreaImage, RockFaceImage
 from .serializers import (
     AreaSerializer,
@@ -46,3 +49,19 @@ class AreaImageViewSet(viewsets.ModelViewSet):
 class RockFaceImageViewSet(viewsets.ModelViewSet):
     serializer_class = RockFaceImageSerializer
     queryset = RockFaceImage.objects.all()
+
+
+def new_user_view(request):
+    if request.method == 'POST':
+        form = NewUserForm(request.POST)
+        if form.is_valid():
+            user = form.instance
+            user.is_staff = True
+            user.save()
+            messages.success(request, message="Ditt konto har skapats! Återställ lösenordet för att kunna logga in.")
+            return redirect('admin_password_reset')
+    else:
+        form = NewUserForm()
+    return render(request, template_name='django_api/new_user.html', context={
+        'form': form,
+    })
