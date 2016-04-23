@@ -1,5 +1,6 @@
 from django import forms
-
+from string import Template
+from django.utils.safestring import mark_safe
 
 class RockFaceAdminForm(forms.ModelForm):
 
@@ -19,3 +20,12 @@ class AreaAdminForm(forms.ModelForm):
         self.fields['short_description'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '2'})
         self.fields['long_description'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '5'})
         self.fields['road_description'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '5'})
+
+
+class ClubAdminForm(forms.ModelForm):
+    change_comment = forms.CharField(label="Kommentar för ändring")
+
+    def __init__(self, *args, **kwargs):
+        """This overrides the constructor, and adds the class datetimepicker."""
+        super(ClubAdminForm, self).__init__(*args, **kwargs)
+        self.fields['change_comment'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '2'})

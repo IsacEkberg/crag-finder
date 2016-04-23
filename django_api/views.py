@@ -1,7 +1,8 @@
 from django.contrib.admin import filters
+from django.db.models import Q
 from rest_framework import viewsets, filters
 
-from .models import Area, Parking, Route, RockFace, Club, AreaImage, RockFaceImage
+from .models import Area, Parking, Route, RockFace, Club, AreaImage, RockFaceImage, APPROVED, BEING_REVIEWED_DELETE
 from .serializers import (
     AreaSerializer,
     RockFaceSerializer,
@@ -35,7 +36,7 @@ class RouteViewSet(viewsets.ModelViewSet):
 
 class ClubViewSet(viewsets.ModelViewSet):
     serializer_class = ClubSerializer
-    queryset = Club.objects.all()
+    queryset = Club.objects.filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
 
 
 class AreaImageViewSet(viewsets.ModelViewSet):

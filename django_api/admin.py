@@ -6,9 +6,9 @@ from django.db import transaction
 from django.db.models import Q, ManyToManyField
 from django.utils.safestring import mark_safe
 
-from django_api.forms import RockFaceAdminForm, AreaAdminForm
+from django_api.forms import RockFaceAdminForm, AreaAdminForm, ClubAdminForm
 from django_api.models import Area, RockFace, Route, Parking, Club, AreaImage, RockFaceImage, BEING_REVIEWED_CHANGE, \
-BEING_REVIEWED_NEW, BEING_REVIEWED_DELETE, APPROVED
+BEING_REVIEWED_NEW, BEING_REVIEWED_DELETE, APPROVED, Change
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
 from reversion.admin import VersionAdmin
@@ -24,7 +24,8 @@ def is_trusted(user):
 def delete_model(modeladmin, request, queryset):
     if request.user.is_superuser or \
             ((str(modeladmin) == "django_api.{:}".format(str(AreaAdmin.__name__)) or
-              str(modeladmin) == "django_api.{:}".format(str(RockFaceAdmin.__name__))
+              str(modeladmin) == "django_api.{:}".format(str(RockFaceAdmin.__name__)) or
+              str(modeladmin) == "django_api.{:}".format(str(ChangeAdmin.__name__))
               ) and is_trusted(request.user)):
         for obj in queryset:
             obj.delete()
@@ -276,11 +277,12 @@ class AdminClub(VersionAdmin):
     areas.short_description = 'Områden'
 
     search_fields = ['name', 'area__name']
-    list_display = ('name', 'status', 'replacing', areas)
+    list_display = ('name', 'status', areas)
     list_filter = ('name',)
-    fields = ('name', 'address', 'email', 'info')
+    fields = ('name', 'address', 'email', 'info', 'change_comment')
     readonly_fields = ('replacing',)
     actions = [delete_model]
+    form = ClubAdminForm
 
     @transaction.atomic
     def save_model(self, request, obj, form, change):
@@ -302,6 +304,8 @@ class AdminClub(VersionAdmin):
             obj.save()
             obj.replacing = Club.objects.get(pk=tmp_pk)
             obj.save()
+
+            Change.objects.create(content_object=obj, user=request.user)
         else:
             obj.status = BEING_REVIEWED_NEW
             obj.save()
@@ -330,13 +334,63 @@ class AdminClub(VersionAdmin):
         return True
 
     def has_delete_permission(self, request, obj=None):
-        return True
+        return False
 
     def get_queryset(self, request):
+        return super(AdminClub, self).get_queryset(request).filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
+
+
+class ChangeAdmin(admin.ModelAdmin):
+    model = Change
+    change_form_template = 'django_api/change_change_template.html'
+    search_fields = ['content_object', 'status', 'user', 'creation_date', 'content_type']
+    list_display = ('content_object', 'status', 'user', 'creation_date', 'content_type')
+    list_filter = ('content_type',)
+    fields = ('creation_date', 'content_object', 'status', 'user')
+    readonly_fields = ('creation_date', 'content_object', 'status', 'user')
+    actions = [delete_model]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser or request.user.is_trusted
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser or request.user.is_trusted
+
+    def get_actions(self, request):
+        actions = super(ChangeAdmin, self).get_actions(request)
+        if not request.user.is_superuser:
+            del actions['delete_selected']
+        return actions
+
+    def has_module_permission(self, request):
+        # stupid check django performs to not get 403 when clicking on app label
+        return True
+
+    @transaction.atomic
+    def save_model(self, request, obj, form, change):
+        new = obj.content_object
+        old = obj.content_object.replacing
         if request.user.is_superuser or request.user.is_trusted:
-            return super(AdminClub, self).get_queryset(request)
-        else:
-            return super(AdminClub, self).get_queryset(request).filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
+            tmp_pk = new.pk
+            new.pk = old.pk
+            new.replacing = None
+            new.status = APPROVED
+            new.save()
+            obj.content_type.get_object_for_this_type(pk=tmp_pk).delete()
+        obj.delete()
+
+    def delete_model(self, request, obj):
+        if request.user.is_superuser or request.user.is_trusted:
+            try:
+                obj.content_object.delete()
+            except:
+                pass
+            obj.delete()
+
+admin.site.register(Change, ChangeAdmin)
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 admin.site.register(Area, AreaAdmin)

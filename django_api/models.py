@@ -6,7 +6,8 @@ from reversion import revisions as reversion
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.dateformat import format as date_format
-
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 
 def _image_file_path(instance, filename):
     """Returns the subfolder in which to upload images for articles. This results in media/article/img/<filename>"""
@@ -399,6 +400,37 @@ class Club(models.Model):
         return self.name
 
 
+class Change(models.Model):
+    user = models.ForeignKey(User, verbose_name="användare")
+    description = models.TextField(verbose_name="beskrivning", blank=False, null=True)
+    content_type = models.ForeignKey(ContentType, verbose_name="typ", on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    creation_date = models.DateTimeField(verbose_name="datum", auto_created=True, auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'ändring'
+        verbose_name_plural = 'ändringar'
+
+    def __str__(self):
+        return str(self.content_object)
+
+    @property
+    def status(self):
+        return self.content_object.get_status_display
+
+    @property
+    def changed_object_fields(self):
+        my_model_fields = self.content_object._meta.get_all_field_names()
+        replacing = self.content_object.replacing
+        field_list = []
+        for f in my_model_fields:
+            field_list.append({'field': f,
+                               'new': getattr(self.content_object, f, None),
+                               'old': getattr(replacing, f, None)})
+        return field_list
+
+# Adds field is_trusted to the built in user model.
 User.add_to_class('is_trusted', models.BooleanField(default=False, verbose_name="är betrodd"))
 
 reversion.register(Area, follow=["rockfaces", "parking", "image"])

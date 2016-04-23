@@ -1,0 +1,50 @@
+{% extends "admin/change_form.html" %}
+{% block field_sets %}
+{% for fieldset in adminform %}
+  <fieldset class="module aligned {{ fieldset.classes }}">
+    {% if fieldset.name %}<h2>{{ fieldset.name }}</h2>{% endif %}
+    {% if fieldset.description %}
+        <div class="description">{{ fieldset.description|safe }}</div>
+    {% endif %}
+    {% for line in fieldset %}
+        <div class="form-row{% if line.fields|length_is:'1' and line.errors %} errors{% endif %}{% if not line.has_visible_field %} hidden{% endif %}{% for field in line %}{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% endfor %}">
+            {% if line.fields|length_is:'1' %}{{ line.errors }}{% endif %}
+            {% for field in line %}
+                <div{% if not line.fields|length_is:'1' %} class="field-box{% if field.field.name %} field-{{ field.field.name }}{% endif %}{% if not field.is_readonly and field.errors %} errors{% endif %}{% if field.field.is_hidden %} hidden{% endif %}"{% elif field.is_checkbox %} class="checkbox-row"{% endif %}>
+                    {% if not line.fields|length_is:'1' and not field.is_readonly %}{{ field.errors }}{% endif %}
+                    {% if field.is_checkbox %}
+                        {{ field.field }}{{ field.label_tag }}
+                    {% else %}
+                        {{ field.label_tag }}
+                        {% if field.is_readonly %}
+                            <p>{{ field.contents }}</p>
+                        {% else %}
+                            {{ field.field }}
+                        {% endif %}
+                    {% endif %}
+                    {% if field.field.help_text %}
+                        <p class="help">{{ field.field.help_text|safe }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+  <div class="form-row field-change">
+  <div>
+  <label>Ändringar:</label>
+  <table>
+  <tr><th>Fält</th><th>Orginal</th><th>Ändringsförlslag</th></tr>
+  {% for f in original.changed_object_fields %}
+      {% if f.field != "id" and f.field != "replacing" and f.field != "replacing_id" and f.field != "status" %}
+      <tr><th>{{ f.field|capfirst }}</th><td>{{ f.old }}</td><td {% if f.old != f.new %}style="color: red"{% endif %}>{{ f.new }}</td></tr>
+      {% endif %}
+  {% endfor %}
+  </table>
+  </div>
+  </div>
+</fieldset>
+{% endfor %}
+{% endblock %}
+
+
+
