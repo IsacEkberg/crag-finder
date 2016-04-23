@@ -17,5 +17,5 @@ class AreaAdminForm(forms.ModelForm):
         """This overrides the constructor, and adds the class datetimepicker."""
         super(AreaAdminForm, self).__init__(*args, **kwargs)
         self.fields['short_description'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '2'})
-        self.fields['long_description'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '5'})
-        self.fields['road_description'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '5'})
+        #self.fields['long_description'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '5'})
+        #self.fields['road_description'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '5'})
