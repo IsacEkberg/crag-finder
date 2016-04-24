@@ -1,3 +1,6 @@
+import random
+import string
+
 from django.contrib.admin import filters
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -52,11 +55,15 @@ class RockFaceImageViewSet(viewsets.ModelViewSet):
 
 
 def new_user_view(request):
+    def random_string_generator(size=32, chars=string.ascii_letters + string.digits):
+        return ''.join(random.choice(chars) for x in range(size))
+
     if request.method == 'POST':
         form = NewUserForm(request.POST)
         if form.is_valid():
             user = form.instance
             user.is_staff = True
+            user.set_password(random_string_generator())  # pw must be set in order to restore it.
             user.save()
             messages.success(request, message="Ditt konto har skapats! Återställ lösenordet för att kunna logga in.")
             return redirect('admin_password_reset')
