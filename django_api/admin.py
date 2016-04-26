@@ -198,8 +198,12 @@ class RockFaceAdmin(VersionAdmin):
     def save_related(self, request, form, formsets, change):
 
         tmp = form.save_m2m()
-        print("save_related", tmp)
+        print(form.instance.pk)
         for formset in formsets:
+            try:
+                print("save_related", formset.cleaned_data)
+            except:
+                pass
             self.save_formset(request, form, formset, change=change)
 
     def save_formset(self, request, form, formset, change):
@@ -216,29 +220,13 @@ class RockFaceAdmin(VersionAdmin):
             obj.status = APPROVED
             obj.save()
         elif change:
-            old_image = list(obj.image.all())
-            old_routes = list(obj.routes.all())
-            print(old_routes)
             tmp_pk = obj.pk
+            print(obj.pk)
             obj.pk = None
             obj.status = BEING_REVIEWED_CHANGE
             obj.save()
+            print(obj.pk)
             obj.replacing = RockFace.objects.get(pk=tmp_pk)
-            obj.save()
-            obj.replacing.image = old_image
-            obj.replacing.routes = old_routes
-            obj.replacing.save()
-            obj.save()
-            old_image = list(RockFace.objects.get(pk=obj.pk).image.all())
-            old_routes = list(RockFace.objects.get(pk=obj.pk).routes.all())
-            for o in old_image:
-                o.pk = None
-                o.save()
-            for o in old_routes:
-                o.pk = None
-                o.save()
-            obj.image.add(*old_image)
-            obj.routes.add(*old_routes)
             obj.save()
             Change.objects.create(content_object=obj, user=request.user)
         else:
