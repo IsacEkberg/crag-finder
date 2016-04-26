@@ -1,6 +1,11 @@
 from django import forms
 from string import Template
+
+from django.db.models import Q
 from django.utils.safestring import mark_safe
+
+from django_api.models import APPROVED, BEING_REVIEWED_DELETE
+
 
 class RockFaceAdminForm(forms.ModelForm):
 
@@ -20,6 +25,7 @@ class AreaAdminForm(forms.ModelForm):
         self.fields['short_description'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '2'})
         self.fields['long_description'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '5'})
         self.fields['road_description'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '5'})
+        self.fields['clubs'].queryset = self.fields['clubs'].queryset.filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
 
 
 class ClubAdminForm(forms.ModelForm):

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
 from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.db.models import Q, ManyToManyField
@@ -32,6 +32,7 @@ def delete_model(modeladmin, request, queryset):
     else:
         for obj in queryset:
             obj.status = BEING_REVIEWED_DELETE
+            Change.objects.create(content_object=obj, user=request.user)
             obj.save()
 
 
@@ -54,6 +55,21 @@ class UserAdmin(DjangoUserAdmin):
     def save_model(self, request, obj, form, change):
         obj.is_staff = True
         obj.save()
+
+    def save_related(self, request, form, formsets, change):
+        form.save_m2m()
+        obj = form.instance
+        tmp1 = Permission.objects.get(codename='change_change')
+        tmp2 = Permission.objects.get(codename='delete_change')
+        if obj.is_trusted:
+            obj.user_permissions.add(tmp1, tmp2)
+        else:
+            try:
+                obj.user_permissions.remove(tmp1, tmp2)
+            except:
+                pass
+        for formset in formsets:
+            self.save_formset(request, form, formset, change=change)
 
 
 class BaseImageInline(admin.TabularInline):
@@ -139,7 +155,7 @@ class RockFaceAdmin(VersionAdmin):
     def clubs(self):
         return ', '.join(['<a href="{url}">{name}</a>'.format(
             url=reverse('admin:{:}_{:}_change'.format(x._meta.app_label, x._meta.model_name), args=(x.pk,)),
-            name=x.name) for x in self.area.clubs.all().order_by('name')])
+            name=x.name) for x in self.area.clubs.all().filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE)).order_by('name')])
 
     clubs.allow_tags = True
     clubs.short_description = 'Klubbar'
@@ -174,6 +190,7 @@ class RockFaceAdmin(VersionAdmin):
     readonly_fields = ['area', 'area_link']
     search_fields = ['name', 'area__clubs__name', 'area__name']
     actions = [delete_model]
+    change_form_template = 'django_api/change_template.html'
 
     def get_actions(self, request):
         actions = super(RockFaceAdmin, self).get_actions(request)
@@ -250,13 +267,13 @@ class RockFaceAdmin(VersionAdmin):
         return True
 
     def has_add_permission(self, request):
-        return True
+        return request.user.is_superuser
 
     def has_change_permission(self, request, obj=None):
         return True
 
     def has_delete_permission(self, request, obj=None):
-        return request.user.is_superuser or is_trusted(request.user)
+        return request.user.is_superuser
 
     def get_queryset(self, request):
         return super(RockFaceAdmin, self).get_queryset(request).filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
@@ -281,12 +298,24 @@ class RockFaceInline(admin.StackedInline):
     def has_module_permission(self, request):
         return True
 
+    def has_add_permission(self, request):
+        return True
+
+    def has_change_permission(self, request, obj=None):
+        return True
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def get_queryset(self, request):
+        return super(RockFaceInline, self).get_queryset(request).filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
+
 
 class AreaAdmin(VersionAdmin):
     def clubs(self):
         return ', '.join(['<a href="{url}">{name}</a>'.format(
             url=reverse('admin:{:}_{:}_change'.format(x._meta.app_label, x._meta.model_name), args=(x.pk,)),
-            name=x.name) for x in self.clubs.all().order_by('name')])
+            name=x.name) for x in self.clubs.all().filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE)).order_by('name')])
 
     clubs.allow_tags = True
     clubs.short_description = 'Klubbar'
@@ -294,7 +323,7 @@ class AreaAdmin(VersionAdmin):
     def crags(self):
         return ', '.join(['<a href="{url}">{name}</a>'.format(
             url=reverse('admin:{:}_{:}_change'.format(x._meta.app_label, x._meta.model_name), args=(x.pk,)),
-            name=x.name) for x in self.rockfaces.all()])
+            name=x.name) for x in self.rockfaces.all().filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))])
 
     crags.allow_tags = True
     crags.short_description = 'Klippor'
@@ -307,6 +336,7 @@ class AreaAdmin(VersionAdmin):
     inlines = [AreaImageInline, RockFaceInline,]  # TODO: add parking inline
     form = AreaAdminForm
     actions = [delete_model]
+    change_form_template = 'django_api/change_template.html'
 
     def image_tag(self, obj):
         return '<img src="{:}" />'.format(obj.image.image.url)
@@ -330,18 +360,38 @@ class AreaAdmin(VersionAdmin):
         return actions
 
     @transaction.atomic
+    def save_related(self, request, form, formsets, change):
+        form.save_m2m()
+        instance = Area.objects.get(pk=form.instance.pk)
+        for formset in formsets:
+
+            for m in formset.cleaned_data:
+                print(m)
+                if not m:
+                    continue
+                if "DELETE" in m and m['DELETE']:  # delete
+                    pass
+                else:
+                    try:
+                        del m['id']
+                    except:
+                        pass
+                    try:
+                        del m['DELETE']
+                    except:
+                        pass
+                    obj = formset.model.objects.create(**m)
+                    if formset.model == RockFace:
+                        instance.rockfaces.add(obj)
+                    elif formset.model == AreaImage:
+                        instance.image.add(obj)
+            formset.save(commit=False)
+
+    @transaction.atomic
     def save_model(self, request, obj, form, change):
         if request.user.is_superuser or is_trusted(request.user):
-            if change and obj.replacing:
-                tmp_pk = obj.pk
-                obj.pk = obj.replacing.pk
-                obj.replacing = None
-                obj.status = APPROVED
-                obj.save()
-                Area.objects.get(pk=tmp_pk).delete()
-            else:
-                obj.status = APPROVED
-                obj.save()
+            obj.status = APPROVED
+            obj.save()
         elif change:
             tmp_pk = obj.pk
             obj.pk = None
@@ -349,11 +399,11 @@ class AreaAdmin(VersionAdmin):
             obj.save()
             obj.replacing = Area.objects.get(pk=tmp_pk)
             obj.save()
-
             Change.objects.create(content_object=obj, user=request.user)
         else:
             obj.status = BEING_REVIEWED_NEW
             obj.save()
+            Change.objects.create(content_object=obj, user=request.user)
 
     def delete_model(self, request, obj):
         if request.user.is_superuser or is_trusted(request.user):
@@ -383,7 +433,7 @@ class AdminClub(VersionAdmin):
     def areas(self):
         return ', '.join(['<a href="{url}">{name}</a>'.format(
             url=reverse('admin:{:}_{:}_change'.format(x._meta.app_label, x._meta.model_name), args=(x.pk,)),
-            name=x.name) for x in self.area_set.all()])
+            name=x.name) for x in self.area_set.all().filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))])
 
     areas.allow_tags = True
     areas.short_description = 'Områden'
@@ -485,17 +535,28 @@ class ChangeAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         new = obj.content_object
         old = obj.content_object.replacing
+        if not old:
+            obj.content_object.status = APPROVED
+            obj.content_object.save()
+            obj.delete()
+            return
         if request.user.is_superuser or is_trusted(request.user):
+            fk = []
             m2m = []
             if isinstance(new, RockFace):
-                m2m = [('image', 'rockface'), ('routes', 'rock_face')]
-
-            for m in m2m:
+                fk = [('image', 'rockface'), ('routes', 'rock_face')]
+            elif isinstance(new, Area):
+                fk = [('image', 'area'), ('rockfaces', 'area')]
+                m2m = [('clubs', 'area_set'), ]
+            for m in fk:
                 getattr(old, m[0]).all().delete()
                 for i in getattr(new, m[0]).all():
                     setattr(i, m[1], old)
-                    print(i)
                     i.save()
+            for m in m2m:
+                getattr(old, m[0]).all().delete()
+                for i in getattr(new, m[0]).all():
+                    getattr(old, m[0]).add(i)
             tmp_pk = new.pk
             new.pk = old.pk
             new.replacing = None

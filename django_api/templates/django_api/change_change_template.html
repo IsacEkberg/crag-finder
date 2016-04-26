@@ -31,21 +31,41 @@
     {% endfor %}
   <div class="form-row field-change">
   <div>
+  {% if original.content_object.status == "d" %}
+      <label>Förslag om att radera:</label>
+      <table>
+      <tr><th>Fält</th><th>Ändringsförlslag</th></tr>
+      {% for f in original.changed_object_fields %}
+          {% if f.field != "id" and f.field != "replacing" and f.field != "replacing_id" and f.field != "status" and f.field != "image" and f.field != "routes" %}
+          <tr><th>{{ f.field|capfirst }}</th><td {% if f.old != f.new %}style="color: red"{% endif %}>{{ f.new }}</td></tr>
+          {% elif f.field == "image" or f.field == "routes" %}
+          <tr><th>{{ f.field|capfirst }}</th><td {% if f.old != f.new %}style="color: red"{% endif %}>{{ f.new.all }}</td></tr>
+          {% endif %}
+      {% endfor %}
+      </table>
+  {% else %}
   <label>Ändringar:</label>
   <table>
   <tr><th>Fält</th><th>Orginal</th><th>Ändringsförlslag</th></tr>
   {% for f in original.changed_object_fields %}
-      {% if f.field != "id" and f.field != "replacing" and f.field != "replacing_id" and f.field != "status" and f.field != "image" and f.field != "routes" %}
+      {% if f.field != "id" and f.field != "replacing" and f.field != "replacing_id" and f.field != "status" and f.field != "image" and f.field != "routes" and f.field != "clubs" and f.field != "rockfaces" and f.field != "parking"%}
       <tr><th>{{ f.field|capfirst }}</th><td>{{ f.old }}</td><td {% if f.old != f.new %}style="color: red"{% endif %}>{{ f.new }}</td></tr>
-      {% elif f.field == "image" or f.field == "routes" %}
+      {% elif f.field == "image" or f.field == "routes" or f.field == "clubs" or f.field == "rockfaces" or f.field == "parking" %}
       <tr><th>{{ f.field|capfirst }}</th><td>{{ f.old.all }}</td><td {% if f.old != f.new %}style="color: red"{% endif %}>{{ f.new.all }}</td></tr>
       {% endif %}
   {% endfor %}
   </table>
+  {% endif %}
   </div>
   </div>
 </fieldset>
 {% endfor %}
+{% endblock %}
+{% block submit_buttons_bottom %}
+<div class="submit-row">
+    <input type="submit" value="Godkänn" class="default" name="_save">
+    <p class="deletelink-box"><a href="../delete/" class="deletelink">Avslå</a></p>
+</div>
 {% endblock %}
 
 
