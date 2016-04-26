@@ -77,6 +77,9 @@ class BaseImageInline(admin.TabularInline):
     def has_change_permission(self, request, obj=None):
         return True
 
+    def has_delete_permission(self, request, obj=None):
+        return True
+
 
 class AreaImageInline(BaseImageInline):
     model = AreaImage
@@ -196,23 +199,28 @@ class RockFaceAdmin(VersionAdmin):
 
     @transaction.atomic
     def save_related(self, request, form, formsets, change):
-
-        tmp = form.save_m2m()
-        print(form.instance.pk)
+        instance = RockFace.objects.get(pk=form.instance.pk)
         for formset in formsets:
-            try:
-                print("save_related", formset.cleaned_data)
-            except:
-                pass
-            self.save_formset(request, form, formset, change=change)
-
-    def save_formset(self, request, form, formset, change):
-        """
-        Given an inline formset save it to the database.
-        """
-        tmp = formset.save(commit=False)
-
-        print("save_formset", tmp)
+            for m in formset.cleaned_data:
+                if not m:
+                    continue
+                if "DELETE" in m and m['DELETE']:  # delete
+                    pass
+                else:
+                    try:
+                        del m['id']
+                    except:
+                        pass
+                    try:
+                        del m['DELETE']
+                    except:
+                        pass
+                    obj = formset.model.objects.create(**m)
+                    if formset.model == Route:
+                        instance.routes.add(obj)
+                    elif formset.model == RockFaceImage:
+                        instance.image.add(obj)
+            formset.save(commit=False)
 
     @transaction.atomic
     def save_model(self, request, obj, form, change):
@@ -221,11 +229,9 @@ class RockFaceAdmin(VersionAdmin):
             obj.save()
         elif change:
             tmp_pk = obj.pk
-            print(obj.pk)
             obj.pk = None
             obj.status = BEING_REVIEWED_CHANGE
             obj.save()
-            print(obj.pk)
             obj.replacing = RockFace.objects.get(pk=tmp_pk)
             obj.save()
             Change.objects.create(content_object=obj, user=request.user)
@@ -480,6 +486,16 @@ class ChangeAdmin(admin.ModelAdmin):
         new = obj.content_object
         old = obj.content_object.replacing
         if request.user.is_superuser or is_trusted(request.user):
+            m2m = []
+            if isinstance(new, RockFace):
+                m2m = [('image', 'rockface'), ('routes', 'rock_face')]
+
+            for m in m2m:
+                getattr(old, m[0]).all().delete()
+                for i in getattr(new, m[0]).all():
+                    setattr(i, m[1], old)
+                    print(i)
+                    i.save()
             tmp_pk = new.pk
             new.pk = old.pk
             new.replacing = None
