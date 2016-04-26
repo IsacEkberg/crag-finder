@@ -35,8 +35,10 @@
   <table>
   <tr><th>Fält</th><th>Orginal</th><th>Ändringsförlslag</th></tr>
   {% for f in original.changed_object_fields %}
-      {% if f.field != "id" and f.field != "replacing" and f.field != "replacing_id" and f.field != "status" %}
+      {% if f.field != "id" and f.field != "replacing" and f.field != "replacing_id" and f.field != "status" and f.field != "image" and f.field != "routes" %}
       <tr><th>{{ f.field|capfirst }}</th><td>{{ f.old }}</td><td {% if f.old != f.new %}style="color: red"{% endif %}>{{ f.new }}</td></tr>
+      {% elif f.field == "image" or f.field == "routes" %}
+      <tr><th>{{ f.field|capfirst }}</th><td>{{ f.old.all }}</td><td {% if f.old != f.new %}style="color: red"{% endif %}>{{ f.new.all }}</td></tr>
       {% endif %}
   {% endfor %}
   </table>

@@ -75,7 +75,7 @@ class BaseImageInline(admin.TabularInline):
         return True
 
     def has_change_permission(self, request, obj=None):
-        raise True
+        return True
 
 
 class AreaImageInline(BaseImageInline):
@@ -96,6 +96,15 @@ class RoutesInline(admin.TabularInline):
     extra = 0
 
     def has_module_permission(self, request):
+        return True
+
+    def has_add_permission(self, request):
+        return True
+
+    def has_change_permission(self, request, obj=None):
+        return True
+
+    def has_delete_permission(self, request, obj=None):
         return True
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
@@ -185,11 +194,78 @@ class RockFaceAdmin(VersionAdmin):
         }
         js = ("django_api/gmaps_admin.js", "django_api/save_buttons.js",)
 
+    @transaction.atomic
+    def save_related(self, request, form, formsets, change):
+
+        tmp = form.save_m2m()
+        print("save_related", tmp)
+        for formset in formsets:
+            self.save_formset(request, form, formset, change=change)
+
+    def save_formset(self, request, form, formset, change):
+        """
+        Given an inline formset save it to the database.
+        """
+        tmp = formset.save(commit=False)
+
+        print("save_formset", tmp)
+
+    @transaction.atomic
+    def save_model(self, request, obj, form, change):
+        if request.user.is_superuser or is_trusted(request.user):
+            obj.status = APPROVED
+            obj.save()
+        elif change:
+            old_image = list(obj.image.all())
+            old_routes = list(obj.routes.all())
+            print(old_routes)
+            tmp_pk = obj.pk
+            obj.pk = None
+            obj.status = BEING_REVIEWED_CHANGE
+            obj.save()
+            obj.replacing = RockFace.objects.get(pk=tmp_pk)
+            obj.save()
+            obj.replacing.image = old_image
+            obj.replacing.routes = old_routes
+            obj.replacing.save()
+            obj.save()
+            old_image = list(RockFace.objects.get(pk=obj.pk).image.all())
+            old_routes = list(RockFace.objects.get(pk=obj.pk).routes.all())
+            for o in old_image:
+                o.pk = None
+                o.save()
+            for o in old_routes:
+                o.pk = None
+                o.save()
+            obj.image.add(*old_image)
+            obj.routes.add(*old_routes)
+            obj.save()
+            Change.objects.create(content_object=obj, user=request.user)
+        else:
+            obj.status = BEING_REVIEWED_NEW
+            obj.save()
+
+    def delete_model(self, request, obj):
+        if request.user.is_superuser or is_trusted(request.user):
+            obj.delete()
+        else:
+            obj.status = BEING_REVIEWED_DELETE
+            obj.save()
+
     def has_module_permission(self, request):
         return True
 
     def has_add_permission(self, request):
-        return False
+        return True
+
+    def has_change_permission(self, request, obj=None):
+        return True
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser or is_trusted(request.user)
+
+    def get_queryset(self, request):
+        return super(RockFaceAdmin, self).get_queryset(request).filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
 
 
 class RockFaceInline(admin.StackedInline):
@@ -259,11 +335,53 @@ class AreaAdmin(VersionAdmin):
             del actions['delete_selected']
         return actions
 
+    @transaction.atomic
+    def save_model(self, request, obj, form, change):
+        if request.user.is_superuser or is_trusted(request.user):
+            if change and obj.replacing:
+                tmp_pk = obj.pk
+                obj.pk = obj.replacing.pk
+                obj.replacing = None
+                obj.status = APPROVED
+                obj.save()
+                Area.objects.get(pk=tmp_pk).delete()
+            else:
+                obj.status = APPROVED
+                obj.save()
+        elif change:
+            tmp_pk = obj.pk
+            obj.pk = None
+            obj.status = BEING_REVIEWED_CHANGE
+            obj.save()
+            obj.replacing = Area.objects.get(pk=tmp_pk)
+            obj.save()
+
+            Change.objects.create(content_object=obj, user=request.user)
+        else:
+            obj.status = BEING_REVIEWED_NEW
+            obj.save()
+
+    def delete_model(self, request, obj):
+        if request.user.is_superuser or is_trusted(request.user):
+            obj.delete()
+        else:
+            obj.status = BEING_REVIEWED_DELETE
+            obj.save()
+
     def has_module_permission(self, request):
         return True
 
     def has_add_permission(self, request):
         return True
+
+    def has_change_permission(self, request, obj=None):
+        return True
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser or is_trusted(request.user)
+
+    def get_queryset(self, request):
+        return super(AreaAdmin, self).get_queryset(request).filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
 
 
 class AdminClub(VersionAdmin):
@@ -286,7 +404,7 @@ class AdminClub(VersionAdmin):
 
     @transaction.atomic
     def save_model(self, request, obj, form, change):
-        if request.user.is_superuser or request.user.is_trusted:
+        if request.user.is_superuser or is_trusted(request.user):
             if change and obj.replacing:
                 tmp_pk = obj.pk
                 obj.pk = obj.replacing.pk
@@ -311,7 +429,7 @@ class AdminClub(VersionAdmin):
             obj.save()
 
     def delete_model(self, request, obj):
-        if request.user.is_superuser or request.user.is_trusted:
+        if request.user.is_superuser or is_trusted(request.user):
             obj.delete()
         else:
             obj.status = BEING_REVIEWED_DELETE
@@ -334,7 +452,7 @@ class AdminClub(VersionAdmin):
         return True
 
     def has_delete_permission(self, request, obj=None):
-        return False
+        return request.user.is_superuser or is_trusted(request.user)
 
     def get_queryset(self, request):
         return super(AdminClub, self).get_queryset(request).filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
@@ -354,10 +472,10 @@ class ChangeAdmin(admin.ModelAdmin):
         return False
 
     def has_change_permission(self, request, obj=None):
-        return request.user.is_superuser or request.user.is_trusted
+        return request.user.is_superuser or is_trusted(request.user)
 
     def has_delete_permission(self, request, obj=None):
-        return request.user.is_superuser or request.user.is_trusted
+        return request.user.is_superuser or is_trusted(request.user)
 
     def get_actions(self, request):
         actions = super(ChangeAdmin, self).get_actions(request)
@@ -373,7 +491,7 @@ class ChangeAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         new = obj.content_object
         old = obj.content_object.replacing
-        if request.user.is_superuser or request.user.is_trusted:
+        if request.user.is_superuser or is_trusted(request.user):
             tmp_pk = new.pk
             new.pk = old.pk
             new.replacing = None
@@ -383,7 +501,7 @@ class ChangeAdmin(admin.ModelAdmin):
         obj.delete()
 
     def delete_model(self, request, obj):
-        if request.user.is_superuser or request.user.is_trusted:
+        if request.user.is_superuser or is_trusted(request.user):
             try:
                 obj.content_object.delete()
             except:
