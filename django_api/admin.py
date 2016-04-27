@@ -256,13 +256,6 @@ class RockFaceAdmin(VersionAdmin):
             obj.status = BEING_REVIEWED_NEW
             obj.save()
 
-    def delete_model(self, request, obj):
-        if request.user.is_superuser or is_trusted(request.user):
-            obj.delete()
-        else:
-            obj.status = BEING_REVIEWED_DELETE
-            obj.save()
-
     def has_module_permission(self, request):
         return True
 
@@ -366,7 +359,6 @@ class AreaAdmin(VersionAdmin):
         for formset in formsets:
 
             for m in formset.cleaned_data:
-                print(m)
                 if not m:
                     continue
                 if "DELETE" in m and m['DELETE']:  # delete
@@ -405,13 +397,6 @@ class AreaAdmin(VersionAdmin):
             obj.save()
             Change.objects.create(content_object=obj, user=request.user)
 
-    def delete_model(self, request, obj):
-        if request.user.is_superuser or is_trusted(request.user):
-            obj.delete()
-        else:
-            obj.status = BEING_REVIEWED_DELETE
-            obj.save()
-
     def has_module_permission(self, request):
         return True
 
@@ -449,16 +434,8 @@ class AdminClub(VersionAdmin):
     @transaction.atomic
     def save_model(self, request, obj, form, change):
         if request.user.is_superuser or is_trusted(request.user):
-            if change and obj.replacing:
-                tmp_pk = obj.pk
-                obj.pk = obj.replacing.pk
-                obj.replacing = None
-                obj.status = APPROVED
-                obj.save()
-                Club.objects.get(pk=tmp_pk).delete()
-            else:
-                obj.status = APPROVED
-                obj.save()
+            obj.status = APPROVED
+            obj.save()
         elif change:
             tmp_pk = obj.pk
             obj.pk = None
@@ -466,18 +443,11 @@ class AdminClub(VersionAdmin):
             obj.save()
             obj.replacing = Club.objects.get(pk=tmp_pk)
             obj.save()
-
             Change.objects.create(content_object=obj, user=request.user)
         else:
             obj.status = BEING_REVIEWED_NEW
             obj.save()
-
-    def delete_model(self, request, obj):
-        if request.user.is_superuser or is_trusted(request.user):
-            obj.delete()
-        else:
-            obj.status = BEING_REVIEWED_DELETE
-            obj.save()
+            Change.objects.create(content_object=obj, user=request.user)
 
     def has_module_permission(self, request):
         # stupid check django performs to not get 403 when clicking on app label
