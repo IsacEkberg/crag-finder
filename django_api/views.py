@@ -28,17 +28,17 @@ class AreaViewSet(viewsets.ModelViewSet):
 
 class RockFaceViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = RockFaceSerializer
-    queryset = RockFace.objects.all()
+    queryset = RockFace.objects.filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
 
 
 class ParkingViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ParkingSerializer
-    queryset = Parking.objects.all()
+    queryset = Parking.objects.filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
 
 
 class RouteViewSet(viewsets.ModelViewSet):
     serializer_class = RouteSerializer
-    queryset = Route.objects.all()
+    queryset = Route.objects.filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
 
 
 class ClubViewSet(viewsets.ModelViewSet):
@@ -48,12 +48,12 @@ class ClubViewSet(viewsets.ModelViewSet):
 
 class AreaImageViewSet(viewsets.ModelViewSet):
     serializer_class = AreaImageSerializer
-    queryset = AreaImage.objects.all()
+    queryset = AreaImage.objects.filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
 
 
 class RockFaceImageViewSet(viewsets.ModelViewSet):
     serializer_class = RockFaceImageSerializer
-    queryset = RockFaceImage.objects.all()
+    queryset = RockFaceImage.objects.filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
 
 
 def new_user_view(request):

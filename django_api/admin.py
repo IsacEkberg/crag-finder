@@ -1,18 +1,15 @@
 from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
-from django.contrib.auth.models import User, Permission
+from django.contrib.auth.models import Permission
 from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.db.models import Q, ManyToManyField
 from django.utils.safestring import mark_safe
 
-from django_api.forms import RockFaceAdminForm, AreaAdminForm, ClubAdminForm
-from django_api.models import Area, RockFace, Route, Parking, Club, AreaImage, RockFaceImage, BEING_REVIEWED_CHANGE, \
-BEING_REVIEWED_NEW, BEING_REVIEWED_DELETE, APPROVED, Change
+from django_api.forms import ClubAdminForm
+
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
-from pagedown.widgets import AdminPagedownWidget
-from django.db import models
 from django_api.forms import RockFaceAdminForm, AreaAdminForm
 from django_api.models import *
 from reversion.admin import VersionAdmin
@@ -435,6 +432,7 @@ class AdminClub(VersionAdmin):
     readonly_fields = ('replacing',)
     actions = [delete_model]
     form = ClubAdminForm
+    change_form_template = 'django_api/change_template.html'
 
     @transaction.atomic
     def save_model(self, request, obj, form, change):
