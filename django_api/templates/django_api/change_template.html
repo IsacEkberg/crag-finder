@@ -1,0 +1,15 @@
+{% extends "admin/change_form.html" %}
+{% block submit_buttons_bottom %}<div class="submit-row">
+<input type="submit" value="Spara" class="default" name="_save">
+<input type="submit" value="Spara och fortsätt redigera" name="_continue">
+</form>
+    <br>
+    <form id="changelist-form" method="post" novalidate="" action="../..">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="delete_model">
+    <input class="select-across" name="select_across" type="hidden" value="0">
+        <input type="submit" style="background: #a41515;margin-top: 1em;" class="action-select button deletelink" title="Kör markerade operationer" name="index" value="Radera">
+
+    <input class="action-select" name="_selected_action" type="hidden" value="{{ original.pk }}">
+    </form></div>
+{% endblock %}

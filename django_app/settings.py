@@ -229,7 +229,7 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "ember_app/dist")]
 if ON_LOCAL_DEV or ON_LOCAL_DOCKER:
     STATIC_ROOT = os.path.join(BASE_DIR, "static_content")
 
-    MEDIA_URL = "/media/"
+    MEDIA_URL = "/admin/media/"
     MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 elif ON_AWS:

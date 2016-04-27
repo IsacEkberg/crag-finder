@@ -2,10 +2,12 @@ import random
 import string
 
 from django.contrib.admin import filters
+from django.db.models import Q
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from rest_framework import viewsets, filters
 
+from .models import Area, Parking, Route, RockFace, Club, AreaImage, RockFaceImage, APPROVED, BEING_REVIEWED_DELETE
 from .forms import NewUserForm
 from .models import Area, Parking, Route, RockFace, Club, AreaImage, RockFaceImage
 from .serializers import (
@@ -26,32 +28,32 @@ class AreaViewSet(viewsets.ModelViewSet):
 
 class RockFaceViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = RockFaceSerializer
-    queryset = RockFace.objects.all()
+    queryset = RockFace.objects.filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
 
 
 class ParkingViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ParkingSerializer
-    queryset = Parking.objects.all()
+    queryset = Parking.objects.filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
 
 
 class RouteViewSet(viewsets.ModelViewSet):
     serializer_class = RouteSerializer
-    queryset = Route.objects.all()
+    queryset = Route.objects.filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
 
 
 class ClubViewSet(viewsets.ModelViewSet):
     serializer_class = ClubSerializer
-    queryset = Club.objects.all()
+    queryset = Club.objects.filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
 
 
 class AreaImageViewSet(viewsets.ModelViewSet):
     serializer_class = AreaImageSerializer
-    queryset = AreaImage.objects.all()
+    queryset = AreaImage.objects.filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
 
 
 class RockFaceImageViewSet(viewsets.ModelViewSet):
     serializer_class = RockFaceImageSerializer
-    queryset = RockFaceImage.objects.all()
+    queryset = RockFaceImage.objects.filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
 
 
 def new_user_view(request):

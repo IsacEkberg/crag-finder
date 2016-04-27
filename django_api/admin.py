@@ -1,40 +1,42 @@
 from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.contrib.auth.models import Permission
 from django.core.urlresolvers import reverse
+from django.db import transaction
 from django.db.models import Q, ManyToManyField
 from django.utils.safestring import mark_safe
-from pagedown.widgets import AdminPagedownWidget
-from django.db import models
+
+from django_api.forms import ClubAdminForm
+
+from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+
 from django_api.forms import RockFaceAdminForm, AreaAdminForm
 from django_api.models import *
 from reversion.admin import VersionAdmin
 
 
-def in_any_club(user):
-    if user.pk in ClubAdmin.objects.all().values_list('user_id', flat=True):
-        return True
-    return False
-
-
-def in_club(clubs, user):
-    for club in clubs:
-        if user.pk in ClubAdmin.objects.filter(club=club).values_list('user_id', flat=True):
-            return True
-    return False
+def is_trusted(user):
+    try:
+        return user.is_trusted
+    except:
+        return False
 
 
 def delete_model(modeladmin, request, queryset):
-    if request.user.is_superuser:
+    if request.user.is_superuser or \
+            ((str(modeladmin) == "django_api.{:}".format(str(AreaAdmin.__name__)) or
+              str(modeladmin) == "django_api.{:}".format(str(RockFaceAdmin.__name__)) or
+              str(modeladmin) == "django_api.{:}".format(str(ChangeAdmin.__name__))
+              ) and is_trusted(request.user)):
         for obj in queryset:
             obj.delete()
-    elif str(modeladmin) == "django_api.{:}".format(str(AreaAdmin.__name__)):
+    else:
         for obj in queryset:
-            if obj and in_club(obj.clubs.all(), request.user):
-                obj.delete()
-    elif str(modeladmin) == "django_api.{:}".format(str(RockFaceAdmin.__name__)):
-        for obj in queryset:
-            if obj and in_club(obj.area.clubs.all(), request.user):
-                obj.delete()
+            obj.status = BEING_REVIEWED_DELETE
+            Change.objects.create(content_object=obj, user=request.user)
+            obj.save()
+
+
 delete_model.short_description = "Ta bort markerade"
 
 admin.site.site_title = 'Crag finder admin'
@@ -45,14 +47,30 @@ admin.site.index_title = mark_safe(
         '1. Skapa ett område först och lägg in vilka klippor som finns på platsen och namnen på dem där. <br>'
         '2. Gå in under klippor och lägg in mer information och leder på varje klippa.')
 
+DjangoUserAdmin.list_display += ('is_trusted',)  # don't forget the commas
+DjangoUserAdmin.list_filter += ('is_trusted',)
+DjangoUserAdmin.fieldsets += (('CragFinder', {'fields': ('is_trusted', )}),)  # Monkey patching at its finest.
 
-def modified_has_permission(request):
-    """
-    Removed check for is_staff.
-    """
-    return request.user.is_active
 
-setattr(admin.site, 'has_permission', modified_has_permission)
+class UserAdmin(DjangoUserAdmin):
+    def save_model(self, request, obj, form, change):
+        obj.is_staff = True
+        obj.save()
+
+    def save_related(self, request, form, formsets, change):
+        form.save_m2m()
+        obj = form.instance
+        tmp1 = Permission.objects.get(codename='change_change')
+        tmp2 = Permission.objects.get(codename='delete_change')
+        if obj.is_trusted:
+            obj.user_permissions.add(tmp1, tmp2)
+        else:
+            try:
+                obj.user_permissions.remove(tmp1, tmp2)
+            except:
+                pass
+        for formset in formsets:
+            self.save_formset(request, form, formset, change=change)
 
 
 class BaseImageInline(admin.TabularInline):
@@ -68,45 +86,27 @@ class BaseImageInline(admin.TabularInline):
     max_num = None
 
     def has_module_permission(self, request):
-        return request.user.is_superuser or in_any_club(request.user)
+        return True
 
     def has_add_permission(self, request):
-        return request.user.is_superuser or in_any_club(request.user)
+        return True
 
     def has_change_permission(self, request, obj=None):
-        raise NotImplementedError("Implement this method!")
+        return True
+
+    def has_delete_permission(self, request, obj=None):
+        return True
 
 
 class AreaImageInline(BaseImageInline):
     model = AreaImage
     max_num = 10
 
-    def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.clubs.all(), request.user)
-        return in_any_club(request.user)
-
 
 class RockFaceImageInline(BaseImageInline):
     model = RockFaceImage
     max_num = None
     fields = ('image', 'image_tag', 'name', 'description')
-
-    def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.area.clubs.all(), request.user)
-        return in_any_club(request.user)
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.area.clubs.all(), request.user)
-        return False
 
 
 class RoutesInline(admin.TabularInline):
@@ -116,24 +116,16 @@ class RoutesInline(admin.TabularInline):
     extra = 0
 
     def has_module_permission(self, request):
-        return request.user.is_superuser or in_any_club(request.user)
+        return True
 
     def has_add_permission(self, request):
-        return request.user.is_superuser or in_any_club(request.user)
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.area.clubs.all(), request.user)
-        return False
+        return True
 
     def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.area.clubs.all(), request.user)
-        return in_any_club(request.user) or request.user.is_superuser
+        return True
+
+    def has_delete_permission(self, request, obj=None):
+        return True
 
     def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         db = kwargs.get('using')
@@ -155,25 +147,7 @@ class ParkingInline(admin.TabularInline):
     extra = 0
 
     def has_module_permission(self, request):
-
-        return request.user.is_superuser or in_any_club(request.user)
-
-    def has_add_permission(self, request):
-        return request.user.is_superuser or in_any_club(request.user)
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.clubs.all(), request.user)
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.clubs.all(), request.user)
-        return in_any_club(request.user)
+        return request.user.is_superuser or is_trusted(request.user)
 
 
 class RockFaceAdmin(VersionAdmin):
@@ -182,7 +156,7 @@ class RockFaceAdmin(VersionAdmin):
     def clubs(self):
         return ', '.join(['<a href="{url}">{name}</a>'.format(
             url=reverse('admin:{:}_{:}_change'.format(x._meta.app_label, x._meta.model_name), args=(x.pk,)),
-            name=x.name) for x in self.area.clubs.all().order_by('name')])
+            name=x.name) for x in self.area.clubs.all().filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE)).order_by('name')])
 
     clubs.allow_tags = True
     clubs.short_description = 'Klubbar'
@@ -217,6 +191,7 @@ class RockFaceAdmin(VersionAdmin):
     readonly_fields = ['area', 'area_link']
     search_fields = ['name', 'area__clubs__name', 'area__name']
     actions = [delete_model]
+    change_form_template = 'django_api/change_template.html'
 
     def get_actions(self, request):
         actions = super(RockFaceAdmin, self).get_actions(request)
@@ -240,25 +215,62 @@ class RockFaceAdmin(VersionAdmin):
         }
         js = ("django_api/gmaps_admin.js", "django_api/save_buttons.js",)
 
+    @transaction.atomic
+    def save_related(self, request, form, formsets, change):
+        instance = RockFace.objects.get(pk=form.instance.pk)
+        for formset in formsets:
+            for m in formset.cleaned_data:
+                if not m:
+                    continue
+                if "DELETE" in m and m['DELETE']:  # delete
+                    pass
+                else:
+                    try:
+                        del m['id']
+                    except:
+                        pass
+                    try:
+                        del m['DELETE']
+                    except:
+                        pass
+                    obj = formset.model.objects.create(**m)
+                    if formset.model == Route:
+                        instance.routes.add(obj)
+                    elif formset.model == RockFaceImage:
+                        instance.image.add(obj)
+            formset.save(commit=False)
+
+    @transaction.atomic
+    def save_model(self, request, obj, form, change):
+        if request.user.is_superuser or is_trusted(request.user):
+            obj.status = APPROVED
+            obj.save()
+        elif change:
+            tmp_pk = obj.pk
+            obj.pk = None
+            obj.status = BEING_REVIEWED_CHANGE
+            obj.save()
+            obj.replacing = RockFace.objects.get(pk=tmp_pk)
+            obj.save()
+            Change.objects.create(content_object=obj, user=request.user)
+        else:
+            obj.status = BEING_REVIEWED_NEW
+            obj.save()
+
     def has_module_permission(self, request):
-        return request.user.is_superuser or in_any_club(request.user)
+        return True
 
     def has_add_permission(self, request):
-        return False
+        return request.user.is_superuser
 
     def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.area.clubs.all(), request.user)
-        return in_any_club(request.user)
+        return True
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
 
     def get_queryset(self, request):
-        qs = super(RockFaceAdmin, self).get_queryset(request)
-        if request.user.is_superuser:
-            return qs
-        return qs.filter(
-            Q(area__clubs__id__in=ClubAdmin.objects.filter(user_id=request.user.pk).values_list('club_id', flat=True)))
+        return super(RockFaceAdmin, self).get_queryset(request).filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
 
 
 class RockFaceInline(admin.StackedInline):
@@ -278,31 +290,26 @@ class RockFaceInline(admin.StackedInline):
     extra = 0
 
     def has_module_permission(self, request):
-        return request.user.is_superuser or in_any_club(request.user)
+        return True
 
     def has_add_permission(self, request):
-        return request.user.is_superuser or in_any_club(request.user)
-
-    def has_delete_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.clubs.all(), request.user)
-        return False
+        return True
 
     def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.clubs.all(), request.user)
-        return in_any_club(request.user)
+        return True
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def get_queryset(self, request):
+        return super(RockFaceInline, self).get_queryset(request).filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
 
 
 class AreaAdmin(VersionAdmin):
     def clubs(self):
         return ', '.join(['<a href="{url}">{name}</a>'.format(
             url=reverse('admin:{:}_{:}_change'.format(x._meta.app_label, x._meta.model_name), args=(x.pk,)),
-            name=x.name) for x in self.clubs.all().order_by('name')])
+            name=x.name) for x in self.clubs.all().filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE)).order_by('name')])
 
     clubs.allow_tags = True
     clubs.short_description = 'Klubbar'
@@ -310,7 +317,7 @@ class AreaAdmin(VersionAdmin):
     def crags(self):
         return ', '.join(['<a href="{url}">{name}</a>'.format(
             url=reverse('admin:{:}_{:}_change'.format(x._meta.app_label, x._meta.model_name), args=(x.pk,)),
-            name=x.name) for x in self.rockfaces.all()])
+            name=x.name) for x in self.rockfaces.all().filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))])
 
     crags.allow_tags = True
     crags.short_description = 'Klippor'
@@ -324,6 +331,7 @@ class AreaAdmin(VersionAdmin):
     inlines = [AreaImageInline, RockFaceInline,]  # TODO: add parking inline
     form = AreaAdminForm
     actions = [delete_model]
+    change_form_template = 'django_api/change_template.html'
 
     def image_tag(self, obj):
         return '<img src="{:}" />'.format(obj.image.image.url)
@@ -346,75 +354,201 @@ class AreaAdmin(VersionAdmin):
             del actions['delete_selected']
         return actions
 
+    @transaction.atomic
+    def save_related(self, request, form, formsets, change):
+        form.save_m2m()
+        instance = Area.objects.get(pk=form.instance.pk)
+        for formset in formsets:
+
+            for m in formset.cleaned_data:
+                if not m:
+                    continue
+                if "DELETE" in m and m['DELETE']:  # delete
+                    pass
+                else:
+                    try:
+                        del m['id']
+                    except:
+                        pass
+                    try:
+                        del m['DELETE']
+                    except:
+                        pass
+                    obj = formset.model.objects.create(**m)
+                    if formset.model == RockFace:
+                        instance.rockfaces.add(obj)
+                    elif formset.model == AreaImage:
+                        instance.image.add(obj)
+            formset.save(commit=False)
+
+    @transaction.atomic
+    def save_model(self, request, obj, form, change):
+        if request.user.is_superuser or is_trusted(request.user):
+            obj.status = APPROVED
+            obj.save()
+        elif change:
+            tmp_pk = obj.pk
+            obj.pk = None
+            obj.status = BEING_REVIEWED_CHANGE
+            obj.save()
+            obj.replacing = Area.objects.get(pk=tmp_pk)
+            obj.save()
+            Change.objects.create(content_object=obj, user=request.user)
+        else:
+            obj.status = BEING_REVIEWED_NEW
+            obj.save()
+            Change.objects.create(content_object=obj, user=request.user)
+
     def has_module_permission(self, request):
-        return request.user.is_superuser or in_any_club(request.user)
+        return True
 
     def has_add_permission(self, request):
-        return request.user.is_superuser or in_any_club(request.user)
+        return True
 
     def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return in_club(obj.clubs.all(), request.user)
-        return in_any_club(request.user)
+        return True
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser or is_trusted(request.user)
 
     def get_queryset(self, request):
-        qs = super(AreaAdmin, self).get_queryset(request)
-        if request.user.is_superuser:
-            return qs
-        return qs.filter(
-            Q(clubs__id__in=ClubAdmin.objects.filter(user_id=request.user.pk).values_list('club_id', flat=True)))
-
-
-class AddClubAdminInline(admin.TabularInline):
-    model = ClubAdmin
-    fields = ('user',)
-    extra = 1
+        return super(AreaAdmin, self).get_queryset(request).filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
 
 
 class AdminClub(VersionAdmin):
+    # TODO: Add warning about current pending changes.
     def areas(self):
         return ', '.join(['<a href="{url}">{name}</a>'.format(
             url=reverse('admin:{:}_{:}_change'.format(x._meta.app_label, x._meta.model_name), args=(x.pk,)),
-            name=x.name) for x in self.area_set.all()])
+            name=x.name) for x in self.area_set.all().filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))])
 
     areas.allow_tags = True
     areas.short_description = 'Områden'
 
     search_fields = ['name', 'area__name']
-    list_display = ('name', areas)
+    list_display = ('name', 'status', areas)
     list_filter = ('name',)
-    inlines = [AddClubAdminInline]
+    fields = ('name', 'address', 'email', 'info', 'change_comment')
+    readonly_fields = ('replacing',)
+    actions = [delete_model]
+    form = ClubAdminForm
+    change_form_template = 'django_api/change_template.html'
+
+    @transaction.atomic
+    def save_model(self, request, obj, form, change):
+        if request.user.is_superuser or is_trusted(request.user):
+            obj.status = APPROVED
+            obj.save()
+        elif change:
+            tmp_pk = obj.pk
+            obj.pk = None
+            obj.status = BEING_REVIEWED_CHANGE
+            obj.save()
+            obj.replacing = Club.objects.get(pk=tmp_pk)
+            obj.save()
+            Change.objects.create(content_object=obj, user=request.user)
+        else:
+            obj.status = BEING_REVIEWED_NEW
+            obj.save()
+            Change.objects.create(content_object=obj, user=request.user)
 
     def has_module_permission(self, request):
         # stupid check django performs to not get 403 when clicking on app label
-        return in_any_club(request.user) or request.user.is_superuser
+        return True
 
     def get_actions(self, request):
         actions = super(AdminClub, self).get_actions(request)
         if not request.user.is_superuser:
-            return None
+            del actions['delete_selected']
         return actions
 
     def has_add_permission(self, request):
-        return request.user.is_superuser
+        return True
 
     def has_change_permission(self, request, obj=None):
-        if request.user.is_superuser:
-            return True
-        if obj:
-            return obj.pk in ClubAdmin.objects.filter(user_id=request.user.pk).values_list('club_id', flat=True)
-        return in_any_club(request.user)
+        return True
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser or is_trusted(request.user)
 
     def get_queryset(self, request):
-        qs = super(AdminClub, self).get_queryset(request)
-        if request.user.is_superuser:
-            return qs
-        return qs.filter(
-            Q(pk__in=ClubAdmin.objects.filter(user_id=request.user.pk).values_list('club_id', flat=True)))
+        return super(AdminClub, self).get_queryset(request).filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
 
 
+class ChangeAdmin(admin.ModelAdmin):
+    model = Change
+    change_form_template = 'django_api/change_change_template.html'
+    search_fields = ['content_object', 'status', 'user', 'creation_date', 'content_type']
+    list_display = ('content_object', 'status', 'user', 'creation_date', 'content_type')
+    list_filter = ('content_type',)
+    fields = ('creation_date', 'content_object', 'status', 'user')
+    readonly_fields = ('creation_date', 'content_object', 'status', 'user')
+    actions = [delete_model]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser or is_trusted(request.user)
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser or is_trusted(request.user)
+
+    def get_actions(self, request):
+        actions = super(ChangeAdmin, self).get_actions(request)
+        if not request.user.is_superuser:
+            del actions['delete_selected']
+        return actions
+
+    def has_module_permission(self, request):
+        # stupid check django performs to not get 403 when clicking on app label
+        return True
+
+    @transaction.atomic
+    def save_model(self, request, obj, form, change):
+        new = obj.content_object
+        old = obj.content_object.replacing
+        if not old:
+            obj.content_object.status = APPROVED
+            obj.content_object.save()
+            obj.delete()
+            return
+        if request.user.is_superuser or is_trusted(request.user):
+            fk = []
+            m2m = []
+            if isinstance(new, RockFace):
+                fk = [('image', 'rockface'), ('routes', 'rock_face')]
+            elif isinstance(new, Area):
+                fk = [('image', 'area'), ('rockfaces', 'area')]
+                m2m = [('clubs', 'area_set'), ]
+            for m in fk:
+                getattr(old, m[0]).all().delete()
+                for i in getattr(new, m[0]).all():
+                    setattr(i, m[1], old)
+                    i.save()
+            for m in m2m:
+                getattr(old, m[0]).all().delete()
+                for i in getattr(new, m[0]).all():
+                    getattr(old, m[0]).add(i)
+            tmp_pk = new.pk
+            new.pk = old.pk
+            new.replacing = None
+            new.status = APPROVED
+            new.save()
+            obj.content_type.get_object_for_this_type(pk=tmp_pk).delete()
+        obj.delete()
+
+    def delete_model(self, request, obj):
+        if request.user.is_superuser or is_trusted(request.user):
+            try:
+                obj.content_object.delete()
+            except:
+                pass
+            obj.delete()
+
+admin.site.register(Change, ChangeAdmin)
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)
 admin.site.register(Area, AreaAdmin)
 admin.site.register(RockFace, RockFaceAdmin)
 admin.site.register(Club, AdminClub)

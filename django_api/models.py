@@ -1,6 +1,7 @@
 import os
 
 from django.core.validators import RegexValidator
+from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django.utils import timezone
 from pagedown.widgets import AdminPagedownWidget
@@ -8,7 +9,8 @@ from reversion import revisions as reversion
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.dateformat import format as date_format
-
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 
 def _image_file_path(instance, filename):
     """Returns the subfolder in which to upload images for articles. This results in media/article/img/<filename>"""
@@ -16,6 +18,20 @@ def _image_file_path(instance, filename):
         'images', "{:}_{:}".format(date_format(timezone.now(), 'U'), filename)
     )
 
+# These two doesn't show on the site
+BEING_REVIEWED_CHANGE = 'c'
+BEING_REVIEWED_NEW = 'n'
+
+# These two does show up on the site
+BEING_REVIEWED_DELETE = 'd'
+APPROVED = 'a'
+
+STATUSES = (
+    (BEING_REVIEWED_CHANGE, "Ändring som väntar på godkännande"),
+    (BEING_REVIEWED_NEW, "Ny som väntar på godkännande"),
+    (BEING_REVIEWED_DELETE, "Väntar på att bli borttagen"),
+    (APPROVED, "Godkänt")
+)
 
 class MarkDownTextField(models.TextField):
     widget = AdminPagedownWidget
@@ -33,6 +49,13 @@ class AreaImage(models.Model):
         verbose_name="bild", )
 
     area = models.ForeignKey('Area', related_name="image")
+
+    status = models.CharField(
+        max_length=1,
+        choices=STATUSES,
+        default=APPROVED,
+        blank=False,
+        null=False)
 
     class Meta:
         verbose_name = 'områdes bild'
@@ -52,6 +75,13 @@ class RockFaceImage(models.Model):
     name = models.CharField(verbose_name="namn", max_length=255, null=True, blank=False)
     description = models.TextField(verbose_name="kort beskrivning av bilden", null=True, blank=True)
 
+    status = models.CharField(
+        max_length=1,
+        choices=STATUSES,
+        default=APPROVED,
+        blank=False,
+        null=False)
+
     class Meta:
         verbose_name = 'bild på klippan'
         verbose_name_plural = 'bilder på klippan'
@@ -67,7 +97,7 @@ class Area(models.Model):
     """
     A climbing area. Contains several crags. A parking or more.
     """
-    name = models.CharField(verbose_name="namn", max_length=150, unique=True)
+    name = models.CharField(verbose_name="namn", max_length=150)
     short_description = models.CharField(verbose_name="kort beskrivning", max_length=300, null=True, blank=False)
     long_description = MarkDownTextField(verbose_name="lång beskrivning", max_length=4000, null=True, blank=False)
     road_description = models.CharField(verbose_name="väg beskrivning", max_length=4000, null=True, blank=False)
@@ -79,12 +109,6 @@ class Area(models.Model):
         default=None,
         on_delete=models.SET_NULL)
 
-    BEING_REVIEWED = 'b'
-    APPROVED = 'a'
-    STATUSES = (
-        (BEING_REVIEWED, "väntar på godkännande"),
-        (APPROVED, "Godkänt")
-    )
     status = models.CharField(
         max_length=1,
         choices=STATUSES,
@@ -136,12 +160,7 @@ class RockFace(models.Model):
         blank=True,
         default=None,
         on_delete=models.SET_NULL)
-    BEING_REVIEWED = 'b'
-    APPROVED = 'a'
-    STATUSES = (
-        (BEING_REVIEWED, "väntar på godkännande"),
-        (APPROVED, "Godkänt")
-    )
+
     status = models.CharField(
         max_length=1,
         choices=STATUSES,
@@ -190,12 +209,6 @@ class Route(models.Model):
         default=None,
         on_delete=models.SET_NULL)
 
-    BEING_REVIEWED = 'b'
-    APPROVED = 'a'
-    STATUSES = (
-        (BEING_REVIEWED, "väntar på godkännande"),
-        (APPROVED, "Godkänt")
-    )
     status = models.CharField(
         max_length=1,
         choices=STATUSES,
@@ -376,6 +389,19 @@ class Club(models.Model):
     address = models.TextField(verbose_name="adress")
     email = models.EmailField(verbose_name="epost",)
     info = models.TextField(verbose_name="Information om klubben",)
+    replacing = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        default=None,
+        on_delete=models.SET_NULL)
+
+    status = models.CharField(
+        max_length=1,
+        choices=STATUSES,
+        default=APPROVED,
+        blank=False,
+        null=False)
 
     class Meta:
         verbose_name = 'klubb'
@@ -385,16 +411,38 @@ class Club(models.Model):
         return self.name
 
 
-class ClubAdmin(models.Model):
-    club = models.ForeignKey(Club, verbose_name="klubb")
+class Change(models.Model):
     user = models.ForeignKey(User, verbose_name="användare")
+    description = models.TextField(verbose_name="beskrivning", blank=False, null=True)
+    content_type = models.ForeignKey(ContentType, verbose_name="typ", on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    creation_date = models.DateTimeField(verbose_name="datum", auto_created=True, auto_now_add=True)
 
     class Meta:
-        verbose_name = 'klubbadministratör'
-        verbose_name_plural = 'klubbadministratörer'
+        verbose_name = 'ändring'
+        verbose_name_plural = 'ändringar'
 
     def __str__(self):
-        return str(self.user)
+        return str(self.content_object)
+
+    @property
+    def status(self):
+        return self.content_object.get_status_display
+
+    @property
+    def changed_object_fields(self):
+        my_model_fields = self.content_object._meta.get_all_field_names()
+        replacing = self.content_object.replacing
+        field_list = []
+        for f in my_model_fields:
+            field_list.append({'field': f,
+                               'new': getattr(self.content_object, f, None),
+                               'old': getattr(replacing, f, None)})
+        return field_list
+
+# Adds field is_trusted to the built in user model.
+User.add_to_class('is_trusted', models.BooleanField(default=False, verbose_name="är betrodd"))
 
 reversion.register(Area, follow=["rockfaces", "parking", "image"])
 reversion.register(RockFace, follow=["routes", "image"])
