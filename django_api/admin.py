@@ -17,7 +17,7 @@ from reversion.admin import VersionAdmin
 
 def is_trusted(user):
     try:
-        return user.is_trusted
+        return user.cf_profile.is_trusted
     except:
         return False
 
@@ -47,9 +47,11 @@ admin.site.index_title = mark_safe(
         '1. Skapa ett område först och lägg in vilka klippor som finns på platsen och namnen på dem där. <br>'
         '2. Gå in under klippor och lägg in mer information och leder på varje klippa.')
 
-DjangoUserAdmin.list_display += ('is_trusted',)  # don't forget the commas
-DjangoUserAdmin.list_filter += ('is_trusted',)
-DjangoUserAdmin.fieldsets += (('CragFinder', {'fields': ('is_trusted', )}),)  # Monkey patching at its finest.
+
+class CragfinderProfileInline(admin.StackedInline):
+    model = CragfinderProfile
+
+DjangoUserAdmin.inlines = DjangoUserAdmin.inlines + [CragfinderProfileInline,]
 
 
 class UserAdmin(DjangoUserAdmin):
@@ -62,7 +64,7 @@ class UserAdmin(DjangoUserAdmin):
         obj = form.instance
         tmp1 = Permission.objects.get(codename='change_change')
         tmp2 = Permission.objects.get(codename='delete_change')
-        if obj.is_trusted:
+        if is_trusted(obj):
             obj.user_permissions.add(tmp1, tmp2)
         else:
             try:

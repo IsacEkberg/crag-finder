@@ -33,7 +33,7 @@ class RockFaceViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ParkingViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ParkingSerializer
-    queryset = Parking.objects.filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
+    queryset = Parking.objects.all()
 
 
 class RouteViewSet(viewsets.ModelViewSet):

@@ -441,8 +441,11 @@ class Change(models.Model):
                                'old': getattr(replacing, f, None)})
         return field_list
 
+
 # Adds field is_trusted to the built in user model.
-User.add_to_class('is_trusted', models.BooleanField(default=False, verbose_name="är betrodd"))
+class CragfinderProfile(models.Model):
+    user = models.OneToOneField(User, related_name='cf_profile')
+    is_trusted = models.BooleanField(default=False, verbose_name="är betrodd")
 
 reversion.register(Area, follow=["rockfaces", "parking", "image"])
 reversion.register(RockFace, follow=["routes", "image"])
