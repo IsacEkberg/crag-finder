@@ -11,6 +11,10 @@ from django_api.models import Area, RockFace, Route, Parking, Club, AreaImage, R
 BEING_REVIEWED_NEW, BEING_REVIEWED_DELETE, APPROVED, Change
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
+from pagedown.widgets import AdminPagedownWidget
+from django.db import models
+from django_api.forms import RockFaceAdminForm, AreaAdminForm
+from django_api.models import *
 from reversion.admin import VersionAdmin
 
 
@@ -324,8 +328,9 @@ class AreaAdmin(VersionAdmin):
     list_display = ('name', clubs, crags)
     list_filter = ('clubs',)
     search_fields = ['name', 'clubs__name', 'rockfaces__name']
-    formfield_overrides = {ManyToManyField: {'widget': FilteredSelectMultiple(
-        "", is_stacked=False)}, }
+    formfield_overrides = {
+        ManyToManyField: {'widget': FilteredSelectMultiple("", is_stacked=False)},
+    }
     inlines = [AreaImageInline, RockFaceInline,]  # TODO: add parking inline
     form = AreaAdminForm
     actions = [delete_model]

@@ -1,3 +1,4 @@
+from captcha.fields import CaptchaField
 from django import forms
 from string import Template
 
@@ -6,6 +7,7 @@ from django.utils.safestring import mark_safe
 
 from django_api.models import APPROVED, BEING_REVIEWED_DELETE
 
+from django.contrib.auth.models import User
 
 class RockFaceAdminForm(forms.ModelForm):
 
@@ -23,9 +25,20 @@ class AreaAdminForm(forms.ModelForm):
         """This overrides the constructor, and adds the class datetimepicker."""
         super(AreaAdminForm, self).__init__(*args, **kwargs)
         self.fields['short_description'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '2'})
-        self.fields['long_description'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '5'})
-        self.fields['road_description'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '5'})
+        #self.fields['long_description'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '5'})
+        #self.fields['road_description'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '5'})
         self.fields['clubs'].queryset = self.fields['clubs'].queryset.filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
+
+class NewUserForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(NewUserForm, self).__init__(*args, **kwargs)
+        self.fields['email'].required = True
+
+    captcha = CaptchaField()
+
+    class Meta():
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name']
 
 
 class ClubAdminForm(forms.ModelForm):

@@ -3,6 +3,16 @@
 
 @import "compass/utilities/color";
 
+.landing-content{
+  .accent-color{
+    color: $accent-color;
+  }
+  .feature{
+    margin-bottom: 4em;
+    margin-top: 2em;
+  }
+}
+
 .brand-index{
   //Add a bit of margin on larger screens.
   @media(min-width: $screen-md) {

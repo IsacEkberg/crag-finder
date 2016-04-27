@@ -81,7 +81,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'reversion',
     'django_api',
-    'django_filters'
+    'django_filters',
+    'pagedown',
+    'captcha',
 ]
 
 SITE_ID = 1
@@ -277,3 +279,5 @@ LOGGING = {
         },
     },
 }
+
+PAGEDOWN_SHOW_PREVIEW = True

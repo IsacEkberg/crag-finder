@@ -4,6 +4,7 @@ from django.core.validators import RegexValidator
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django.utils import timezone
+from pagedown.widgets import AdminPagedownWidget
 from reversion import revisions as reversion
 from django.db import models
 from django.contrib.auth.models import User
@@ -31,6 +32,14 @@ STATUSES = (
     (BEING_REVIEWED_DELETE, "Väntar på att bli borttagen"),
     (APPROVED, "Godkänt")
 )
+
+class MarkDownTextField(models.TextField):
+    widget = AdminPagedownWidget
+
+
+class MarkDownCharField(models.CharField):
+    widget = AdminPagedownWidget
+
 
 class AreaImage(models.Model):
     image = models.ImageField(
@@ -90,7 +99,7 @@ class Area(models.Model):
     """
     name = models.CharField(verbose_name="namn", max_length=150)
     short_description = models.CharField(verbose_name="kort beskrivning", max_length=300, null=True, blank=False)
-    long_description = models.CharField(verbose_name="lång beskrivning", max_length=4000, null=True, blank=False)
+    long_description = MarkDownTextField(verbose_name="lång beskrivning", max_length=4000, null=True, blank=False)
     road_description = models.CharField(verbose_name="väg beskrivning", max_length=4000, null=True, blank=False)
     clubs = models.ManyToManyField('Club', verbose_name="ansvarig klubb/klubbar", blank=False)
     replacing = models.ForeignKey(

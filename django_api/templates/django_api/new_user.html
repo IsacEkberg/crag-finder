@@ -1,0 +1,27 @@
+{% extends "admin/base.html" %}
+
+{% block branding %}
+    Skapa konto
+{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block title %}
+    Crag finder - Välkommen :)
+{% endblock %}
+{% block coltype %}colMS{% endblock %}
+{% block content %}
+    <div id="content-main">
+
+        <p>Fyll i formuläret nedan och klicka på 'Skapa konto'. Då kommer ett konto att skapas och du kommer
+            att kunna att sätta ett lösenord.</p>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <p>När du klickar på knappen nedan kommer då flyttas till en sida där du kan sätta ditt lösenord.</p>
+            <div>
+                <input class="button default" type="submit">Skapa konto!</input>
+            </div>
+        </form>
+    </div>
+{% endblock %}
