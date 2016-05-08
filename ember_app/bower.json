@@ -12,6 +12,7 @@
     "font-awesome": "~4.5.0",
     "jquery-ui": "^1.11.4",
     "remarkable": "^1.6.2",
-    "highlightjs": "^9.2.0"
+    "highlightjs": "^9.2.0",
+    "fabric.js": "fabric#^1.6.1"
   }
 }

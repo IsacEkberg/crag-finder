@@ -24,6 +24,8 @@ module.exports = function(defaults) {
   //Adds the jquery UI library.
   app.import('bower_components/jquery-ui/jquery-ui.js');
 
+  app.import('bower_components/fabric.js/dist/fabric.js');
+
   // Use `app.import` to add additional libraries to the generated
   // output files.
   //
