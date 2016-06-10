@@ -85,4 +85,4 @@ class RockFaceImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RockFaceImage
-        fields = ('id', 'image', 'rockface', 'route_set')
+        fields = ('id', 'image', 'rockface', 'route_set', 'image_height', 'image_width')

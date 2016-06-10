@@ -82,6 +82,14 @@ class RockFaceImage(models.Model):
         blank=False,
         null=False)
 
+    @property
+    def image_height(self):
+        return self.image.height
+
+    @property
+    def image_width(self):
+        return self.image.width
+
     class Meta:
         verbose_name = 'bild på klippan'
         verbose_name_plural = 'bilder på klippan'
