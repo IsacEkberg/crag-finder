@@ -548,10 +548,32 @@ class ChangeAdmin(admin.ModelAdmin):
                 pass
             obj.delete()
 
+
+class RouteNodeInline(admin.StackedInline):
+    model = RouteNode
+
+
+class RockFaceImageAdmin(admin.ModelAdmin):
+    model = RockFaceImage
+    inlines = (RouteNodeInline,)
+    exclude = ('name', 'image', 'description', 'status', 'rockface')
+
+    readonly_fields = (
+                       'associated_routes',
+                       'image_url',
+                       'image_height',
+                       'image_width',
+                       'rockface_key',
+                       'id')
+
+    class Media:
+        js = ("django_api/rockface_image_editor.js", )
+
 admin.site.register(Change, ChangeAdmin)
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 admin.site.register(Area, AreaAdmin)
 admin.site.register(RockFace, RockFaceAdmin)
 admin.site.register(Club, AdminClub)
+admin.site.register(RockFaceImage, RockFaceImageAdmin)
 

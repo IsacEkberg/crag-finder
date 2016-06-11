@@ -82,6 +82,19 @@ class RockFaceImage(models.Model):
         blank=False,
         null=False)
 
+    def image_tag(self):
+        return u'<img src="{0}" />'.format(self.image.url)
+
+    image_tag.short_description = 'Bild'
+    image_tag.allow_tags = True
+
+    def associated_routes(self):
+        return Route.objects.filter(rock_face=self.rockface)  # TODO: Use relationship instead.
+
+    @property
+    def image_url(self):
+        return self.image.url
+
     @property
     def image_height(self):
         return self.image.height
@@ -89,6 +102,10 @@ class RockFaceImage(models.Model):
     @property
     def image_width(self):
         return self.image.width
+
+    @property
+    def rockface_key(self):
+        return self.rockface.id
 
     class Meta:
         verbose_name = 'bild på klippan'
@@ -99,6 +116,12 @@ class RockFaceImage(models.Model):
             return "{:}-{:}".format(self.rockface.name, self.name)
         except:
             return "{:}-{:}".format(self.rockface.name,  os.path.basename(self.image.name))
+
+
+class RouteNode(models.Model):
+    image = models.ForeignKey(RockFaceImage)
+    pos_x = models.IntegerField()
+    pos_y = models.IntegerField()
 
 
 class Area(models.Model):
@@ -180,7 +203,7 @@ class RockFace(models.Model):
         verbose_name_plural = 'klippor'
 
     @property
-    def routes(self):
+    def num_routes(self):
         return len(Route.objects.filter(rock_face__exact=self))
 
     def __str__(self):
@@ -209,6 +232,8 @@ class Route(models.Model):
     length = models.PositiveIntegerField(verbose_name="längd", blank=True, null=True)
     image = models.ForeignKey(RockFaceImage, verbose_name="bild", blank=True, null=True)
     nr_of_bolts = models.PositiveIntegerField(verbose_name="antal bultar", blank=True, null=True)
+
+    route_nodes = models.ManyToManyField(RouteNode)
 
     replacing = models.ForeignKey(
         'self',
