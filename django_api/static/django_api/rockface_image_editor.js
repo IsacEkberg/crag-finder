@@ -104,32 +104,164 @@ function insert_dom_elements(w, h, routes, route_callback) {
 
 $('document').ready(function(){
     //Global variables:
+
+    //Fabric canvas
     var canvas = null;
-    
+
+    //Fabric constants
+    var CIRCLE_RADIUS = 12;
+    var CIRCLE_THICKNESS = 5;
+    var ACTIVE_COLOR = 'rgba(255,0,0,1)';  //Red
+    var SELECTED_COLOR = 'rgba(0,255,0,1)'; //Green
+    var INACTIVE_COLOR = 'rgba(0,0,255,1)'; //Yellow
+    var TRANSPARENT_COLOR = 'rgba(0,0,0,0)';
+
+    //Routes, nodes, client side variables.
+    var selectedObject = null;  //Selected node.
+    var routes = {};  //Holds properties of arrays (name=route_id). Circles are in array. Element 0 is first
+    /*
+       EXAMPLE:
+
+        routes = {
+            1: [circle_0, circle_1, circle_2],
+            2: [circle_0, circle_3, circle_4, circle_5],
+            3: [circle_6, circle_7, circle_5]
+        }
+
+        3 routes, route 1 & 2 share start. route 2 & 3 share end anchor.
+        circle 0 & 6 are starting nodes.
+     */
+
+
+    var active_route = null; //The selected route
+
+    //Django ID of image.
+    var object_id = false;
+
+    function onCanvasClick(options){
+        console.log("onCanvasClick()");
+        //Clicked a pre-existing point. Unmark previous + mark new.
+        if(options.target != null){
+            console.log("- Pre-existing point. Unmark(old)+mark(new)");
+        }
+
+        //Nothing clicked. New or connect point.
+        else if(options.target == null){
+            console.log("- New point");
+            addPoint(options.e.offsetX, options.e.offsetY);
+        }
+    }
+
+    function addPoint(x, y){
+        if(active_route == null) {
+            alert("Välj en led först.");
+            return;
+        }
+        console.log("addPoint()");
+        var circle = new fabric.Circle({
+            left: x - CIRCLE_RADIUS,
+            top: y - CIRCLE_RADIUS,
+            strokeWidth: CIRCLE_THICKNESS,
+            radius: CIRCLE_RADIUS,
+            fill: TRANSPARENT_COLOR,
+            stroke: ACTIVE_COLOR
+        });
+        circle.hasBorders = circle.hasControls = false;
+        circle.on({
+            'selected': markSelectedCircle
+        });
+        circle.selected = true;
+        canvas.add(circle);
+        routes[active_route].push(circle);
+    }
+
+    function markSelectedCircle() {
+        console.log('markCircle()');
+        unMarkCircle(selectedObject);
+        this.animate('radius', CIRCLE_RADIUS+3, {
+            onChange: canvas.renderAll.bind(canvas),
+            duration: 200
+        });
+        this.set('stroke', SELECTED_COLOR);
+        selectedObject = this;
+        var in_route = false;
+        $.each(routes[active_route], function (index, circle) {
+            if(Object.is(this, circle)){
+                console.log("Marked circle already added to route");
+                in_route = true;
+            }
+        });
+        if(!in_route){
+            console.log("Adding marked route to active route!");
+            routes[active_route].push(this);  //add to the active route.
+        }
+        console.log(routes);
+    }
+
+    function markActiveCircles() {
+      console.log('markActiveCircles()');
+      $.each(routes, function (index, route) {
+          $.each(route, function (index, circle) {
+                  circle.set('stroke', INACTIVE_COLOR);
+          });
+      });
+      $.each(routes[active_route], function (index, circle) {
+              circle.set('stroke', ACTIVE_COLOR);
+      });
+      canvas.renderAll();
+    }
+
+    function unMarkCircle(s) {
+      console.log('unMarkCircle()');
+      if (s == null) {
+        console.log("- null");
+        return;
+      }
+      s.animate('radius', CIRCLE_RADIUS, {
+        onChange: canvas.renderAll.bind(canvas),
+        duration: 200
+      });
+      s.set('stroke', ACTIVE_COLOR);
+    }
+
+    //Unselect the selected and switch route to edit.
+    function activate_route_cb(route){
+        active_route = route;
+        unMarkCircle(selectedObject);
+        selectedObject = null;
+        markActiveCircles();
+        console.log("Activated route: " + route);
+    }
+
     function init() {
         console.log("Fabric loaded.");
-        var object_id = $("div.field-rockface_key").children("div").children("p").text();
         console.log(object_id);
-        
         get_data(object_id).done(function ( data ) {
             console.log("Loaded rockface+image data.");
             console.log(data);
             var w = data.image.image_width;
             var h = data.image.image_height;
-            function test_cb(text){
-                console.log(text);
-            }
-            insert_dom_elements(w, h, data.routes, test_cb);
+            $.each(data.routes, function (index, route) {
+                routes[route.id] = [];
+            });
+            insert_dom_elements(w, h, data.routes, activate_route_cb);
             canvas = new fabric.Canvas("fabric_canvas");
             canvas.setBackgroundImage(data.image.image, canvas.renderAll.bind(canvas), {
                 backgroundImageStretch: false
             });
+            canvas.on({
+                'mouse:down': onCanvasClick
+            });
         });
     }
 
-    //TODO: Get: image-url, image-size, rockface-routes, route-nodes.
-    console.log("Hello, world.");
-    $.getScript('https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.2/fabric.min.js', init);
+    //Start.
+    object_id = $("div.field-rockface_key").children("div").children("p").text();
+    if(object_id){
+        $.getScript('https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.2/fabric.min.js', init);
+    } else {
+        console.log("No id found.");
+    }
 });
 
 
