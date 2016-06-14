@@ -5,9 +5,11 @@ from django.contrib.admin import filters
 from django.db.models import Q
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.utils import timezone
 from rest_framework import viewsets, filters
 
-from .models import Area, Parking, Route, RockFace, Club, AreaImage, RockFaceImage, APPROVED, BEING_REVIEWED_DELETE
+from .models import Area, Parking, Route, RockFace, Club, AreaImage, RockFaceImage, APPROVED, BEING_REVIEWED_DELETE, \
+    Access
 from .forms import NewUserForm
 from .models import Area, Parking, Route, RockFace, Club, AreaImage, RockFaceImage
 from .serializers import (
@@ -16,7 +18,7 @@ from .serializers import (
     ParkingSerializer,
     RouteSerializer,
     ClubSerializer,
-    AreaImageSerializer, RockFaceImageSerializer)
+    AreaImageSerializer, RockFaceImageSerializer, AccessSerializer)
 
 
 class AreaViewSet(viewsets.ModelViewSet):
@@ -54,6 +56,11 @@ class AreaImageViewSet(viewsets.ModelViewSet):
 class RockFaceImageViewSet(viewsets.ModelViewSet):
     serializer_class = RockFaceImageSerializer
     queryset = RockFaceImage.objects.filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
+
+
+class AccessViewSet(viewsets.ModelViewSet):
+    serializer_class = AccessSerializer
+    queryset = Access.objects.filter(Q(stop_date__gte=timezone.now()) | Q(stop_date__isnull=True))
 
 
 def new_user_view(request):

@@ -10,6 +10,7 @@ router.register(r'parkings', views.ParkingViewSet)
 router.register(r'clubs', views.ClubViewSet)
 router.register(r'areaimages', views.AreaImageViewSet)
 router.register(r'rockfaceimages', views.RockFaceImageViewSet)
+router.register(r'accessdata', views.AccessViewSet)
 
 urlpatterns = [
     url(r'^v1/', include(router.urls)),

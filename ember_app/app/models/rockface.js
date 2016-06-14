@@ -8,6 +8,6 @@ export default DS.Model.extend({
   image: DS.hasMany('rockfaceimage', {async: true}),
   geo_data: DS.attr(),
   short_description: DS.attr(),
-  long_description: DS.attr()
-
+  long_description: DS.attr(),
+  access: DS.hasMany('accessdata', {async: true})
 });
