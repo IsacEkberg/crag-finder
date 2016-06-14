@@ -111,9 +111,9 @@ $('document').ready(function(){
     //Fabric constants
     var CIRCLE_RADIUS = 12;
     var CIRCLE_THICKNESS = 5;
-    var ACTIVE_COLOR = 'rgba(255,0,0,1)';  //Red
-    var SELECTED_COLOR = 'rgba(0,255,0,1)'; //Green
-    var INACTIVE_COLOR = 'rgba(0,0,255,1)'; //Yellow
+    var ACTIVE_COLOR = '#006607';  //Red
+    var SELECTED_COLOR ='#00FF0B'; //Green
+    var INACTIVE_COLOR = '#666666'; //Grey
     var TRANSPARENT_COLOR = 'rgba(0,0,0,0)';
 
     //Routes, nodes, client side variables.
@@ -132,6 +132,7 @@ $('document').ready(function(){
         circle 0 & 6 are starting nodes.
      */
 
+    var lines = {}; //Holds the drawn lines between route nodes.
 
     var active_route = null; //The selected route
 
@@ -173,6 +174,7 @@ $('document').ready(function(){
         circle.selected = true;
         canvas.add(circle);
         routes[active_route].push(circle);
+        drawLines();
     }
 
     function markSelectedCircle() {
@@ -185,8 +187,9 @@ $('document').ready(function(){
         this.set('stroke', SELECTED_COLOR);
         selectedObject = this;
         var in_route = false;
+        var current_circle = this;  //What this refers to changes in each loop...
         $.each(routes[active_route], function (index, circle) {
-            if(Object.is(this, circle)){
+            if(current_circle === circle){
                 console.log("Marked circle already added to route");
                 in_route = true;
             }
@@ -233,6 +236,36 @@ $('document').ready(function(){
         console.log("Activated route: " + route);
     }
 
+    function drawLines(){
+        console.log("Draw lines!");
+        $.each(routes, function (index, route) {
+            if(route.length > 1){
+                for(var i = 1; i < route.length; i++){
+                    var line = new fabric.Line({
+                       fill: 'red',
+                       stroke: 'red',
+                       strokeWidth: '5',
+                       selectable: false
+                    });
+                    line.set('fill', 'red');
+                    line.set('stroke', 'red');
+                    line.set('strokeWidth', 5);
+                    line.set('selectable', false);
+                    line.set('x1', route[i-1].left + CIRCLE_RADIUS);
+                    line.set('y1', route[i-1].top) + CIRCLE_RADIUS;
+                    line.set('x2', route[i].left + CIRCLE_RADIUS);
+                    line.set('y2', route[i].top + CIRCLE_RADIUS);
+
+                    canvas.add(line);
+                    console.log("Added line:");
+                    console.log(line);
+                    canvas.renderAll();
+                    console.log("RenderAll()")
+               }
+            }
+        });
+    }
+
     function init() {
         console.log("Fabric loaded.");
         console.log(object_id);
@@ -250,7 +283,8 @@ $('document').ready(function(){
                 backgroundImageStretch: false
             });
             canvas.on({
-                'mouse:down': onCanvasClick
+                'mouse:down': onCanvasClick,
+                'object:moving': drawLines
             });
         });
     }
