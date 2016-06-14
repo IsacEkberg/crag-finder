@@ -111,9 +111,16 @@ $('document').ready(function(){
     //Fabric constants
     var CIRCLE_RADIUS = 12;
     var CIRCLE_THICKNESS = 5;
-    var ACTIVE_COLOR = '#006607';  //Red
-    var SELECTED_COLOR ='#00FF0B'; //Green
-    var INACTIVE_COLOR = '#666666'; //Grey
+    var CIRCLE_ACTIVE_COLOR = '#006607';
+    var CIRCLE_SELECTED_COLOR ='#00FF0B';
+    var CIRCLE_INACTIVE_COLOR = '#666666';
+
+    var LINE_THICKNESS = '5';
+    var LINE_ACTIVE_COLOR = '#00A109';
+    var LINE_INACTIVE_COLOR = '#666666';
+
+
+
     var TRANSPARENT_COLOR = 'rgba(0,0,0,0)';
 
     //Routes, nodes, client side variables.
@@ -133,7 +140,17 @@ $('document').ready(function(){
      */
 
     var lines = {}; //Holds the drawn lines between route nodes.
+    /*
+        EXAMPLE:
 
+        lines = {
+            1: [line_0_1, line_1_2],
+            2: [line_0_3, line_3_4, line_4_5],
+            3: [line_6_7, line_7_5]
+        }
+        Based on routes example above. line_x_y refers to the line between node x and y.
+        lines property (1-3 in example) are Django route IDs, same as in routes.
+    */
     var active_route = null; //The selected route
 
     //Django ID of image.
@@ -165,7 +182,7 @@ $('document').ready(function(){
             strokeWidth: CIRCLE_THICKNESS,
             radius: CIRCLE_RADIUS,
             fill: TRANSPARENT_COLOR,
-            stroke: ACTIVE_COLOR
+            stroke: CIRCLE_ACTIVE_COLOR
         });
         circle.hasBorders = circle.hasControls = false;
         circle.on({
@@ -184,7 +201,7 @@ $('document').ready(function(){
             onChange: canvas.renderAll.bind(canvas),
             duration: 200
         });
-        this.set('stroke', SELECTED_COLOR);
+        this.set('stroke', CIRCLE_SELECTED_COLOR);
         selectedObject = this;
         var in_route = false;
         var current_circle = this;  //What this refers to changes in each loop...
@@ -197,6 +214,7 @@ $('document').ready(function(){
         if(!in_route){
             console.log("Adding marked route to active route!");
             routes[active_route].push(this);  //add to the active route.
+            drawLines();
         }
         console.log(routes);
     }
@@ -205,11 +223,11 @@ $('document').ready(function(){
       console.log('markActiveCircles()');
       $.each(routes, function (index, route) {
           $.each(route, function (index, circle) {
-                  circle.set('stroke', INACTIVE_COLOR);
+                  circle.set('stroke', CIRCLE_INACTIVE_COLOR);
           });
       });
       $.each(routes[active_route], function (index, circle) {
-              circle.set('stroke', ACTIVE_COLOR);
+              circle.set('stroke', CIRCLE_ACTIVE_COLOR);
       });
       canvas.renderAll();
     }
@@ -224,7 +242,7 @@ $('document').ready(function(){
         onChange: canvas.renderAll.bind(canvas),
         duration: 200
       });
-      s.set('stroke', ACTIVE_COLOR);
+      s.set('stroke', CIRCLE_ACTIVE_COLOR);
     }
 
     //Unselect the selected and switch route to edit.
@@ -237,33 +255,54 @@ $('document').ready(function(){
     }
 
     function drawLines(){
+        function makeLine() {
+            var line = new fabric.Line({
+               fill: LINE_ACTIVE_COLOR,
+               stroke: LINE_ACTIVE_COLOR,
+               strokeWidth: LINE_THICKNESS,
+               selectable: false
+            });
+            line.set('fill', LINE_ACTIVE_COLOR);
+            line.set('stroke', LINE_ACTIVE_COLOR);
+            line.set('strokeWidth', 5);
+            line.set('selectable', false);
+            return line;
+        }
+        function setLineCoords(line, i, j){
+            line.set('x1', i.left + CIRCLE_RADIUS);
+            line.set('y1', i.top + CIRCLE_RADIUS);
+            line.set('x2', j.left + CIRCLE_RADIUS);
+            line.set('y2', j.top + CIRCLE_RADIUS);
+        }
+
         console.log("Draw lines!");
-        $.each(routes, function (index, route) {
+        $.each(routes, function (route_id, route) {
             if(route.length > 1){
                 for(var i = 1; i < route.length; i++){
-                    var line = new fabric.Line({
-                       fill: 'red',
-                       stroke: 'red',
-                       strokeWidth: '5',
-                       selectable: false
-                    });
-                    line.set('fill', 'red');
-                    line.set('stroke', 'red');
-                    line.set('strokeWidth', 5);
-                    line.set('selectable', false);
-                    line.set('x1', route[i-1].left + CIRCLE_RADIUS);
-                    line.set('y1', route[i-1].top) + CIRCLE_RADIUS;
-                    line.set('x2', route[i].left + CIRCLE_RADIUS);
-                    line.set('y2', route[i].top + CIRCLE_RADIUS);
 
-                    canvas.add(line);
-                    console.log("Added line:");
-                    console.log(line);
-                    canvas.renderAll();
-                    console.log("RenderAll()")
+                    if(!(route_id in lines)){
+                        lines[route_id] = [];
+                    }
+
+                    var line = null;
+                    if(typeof lines[route_id][i] === 'undefined'){  //It should be one shorter.
+                        line = makeLine();
+                        setLineCoords(line, route[i-1], route[i]);
+                        lines[route_id].push(line);
+                        canvas.add(line);
+                        line.sendToBack();
+                        console.log("Added line:");
+                    } else {
+                        line = lines[route_id][i];
+                        setLineCoords(line, route[i-1], route[i]);
+                    }
                }
+            } else {
+                console.log("No line for route: " + route_id);
             }
         });
+        console.log("RenderAll()");
+        canvas.renderAll();
     }
 
     function init() {
