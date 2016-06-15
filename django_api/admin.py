@@ -610,7 +610,7 @@ class RouteNodeInline(admin.StackedInline):
 
 class RockFaceImageAdmin(admin.ModelAdmin):
     model = RockFaceImage
-    inlines = (RouteNodeInline,)
+    #inlines = (RouteNodeInline,)
     exclude = ('name', 'image', 'description', 'status', 'rockface')
 
     readonly_fields = (
@@ -620,7 +620,20 @@ class RockFaceImageAdmin(admin.ModelAdmin):
                        'image_width',
                        'rockface_key',
                        'id')
-
+    fieldsets = (
+        ('Debug fields', {
+            'classes': ('collapse',),
+            'fields': ('associated_routes',
+                       'image_url',
+                       'image_height',
+                       'image_width',
+                       'id')
+        }),
+        ('Rockface key', {
+            'classes': ('collapse',),
+            'fields': ('rockface_key',),
+        }),
+    )
     class Media:
         js = ("django_api/rockface_image_editor.js", )
 

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Area, RockFace, Route, Parking, Club, AreaImage, RockFaceImage, Access
+from .models import Area, RockFace, Route, Parking, Club, AreaImage, RockFaceImage, Access, RouteNode
 
 
 class AreaSerializer(serializers.ModelSerializer):
@@ -100,3 +100,14 @@ class AccessSerializer(serializers.ModelSerializer):
                   "start_date",
                   "stop_date",
                   )
+
+
+class RouteNodeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = RouteNode
+        fields = ('id',
+                  "image",
+                  "pos_x",
+                  "pos_y",
+                  "order")

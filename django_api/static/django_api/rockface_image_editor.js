@@ -73,7 +73,7 @@ function get_data(id) {
     return data_promise;
     }
 
-function insert_dom_elements(w, h, routes, route_callback) {
+function insert_dom_elements(w, h, routes, route_callback, save_callback) {
     var $canvas_element = "<canvas id=\"fabric_canvas\" width=\"" + w + "\" height=\"" + h + "\"></canvas>";
     var $route_list = $("<form>", {id: 'route-list'});
 
@@ -82,20 +82,23 @@ function insert_dom_elements(w, h, routes, route_callback) {
         var $element = $("<div>", {class: "route"});
         var $name = $("<p>").text(route.name);
         var $checkbox = $("<input>", {type:'radio', name: 'route-select', value: route.id});
-
         $checkbox.change(function() {
             //returns id of selected route to callback.
             route_callback($(this).val());
         });
-
         $element.append($checkbox);
         $element.append($name);
         $route_list.append($element);
     });
 
-
+    var $save_button = $("<input>", {type: 'submit', class: 'default', value: 'Spara'});
+    $save_button.click(function (e) {
+        e.preventDefault();
+        save_callback();
+    });
 
     $target_element.prepend($route_list);
+    $target_element.prepend($save_button);
     $target_element.prepend($canvas_element);
 
 
@@ -104,6 +107,7 @@ function insert_dom_elements(w, h, routes, route_callback) {
 
 $('document').ready(function(){
     //Global variables:
+    var SAVE_ROUTE_NODE_URL = '/api/v1/routenodes/save/';
 
     //Fabric canvas
     var canvas = null;
@@ -305,6 +309,13 @@ $('document').ready(function(){
         canvas.renderAll();
     }
 
+    function save_data_cb(){
+        $.post(SAVE_ROUTE_NODE_URL + object_id + "/", routes, function () {
+            console.log("Saved successfull!");
+        });
+        console.log("Saving data...");
+    }
+
     function init() {
         console.log("Fabric loaded.");
         console.log(object_id);
@@ -316,7 +327,7 @@ $('document').ready(function(){
             $.each(data.routes, function (index, route) {
                 routes[route.id] = [];
             });
-            insert_dom_elements(w, h, data.routes, activate_route_cb);
+            insert_dom_elements(w, h, data.routes, activate_route_cb, save_data_cb);
             canvas = new fabric.Canvas("fabric_canvas");
             canvas.setBackgroundImage(data.image.image, canvas.renderAll.bind(canvas), {
                 backgroundImageStretch: false

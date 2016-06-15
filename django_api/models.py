@@ -122,7 +122,7 @@ class RouteNode(models.Model):
     image = models.ForeignKey(RockFaceImage)
     pos_x = models.IntegerField()
     pos_y = models.IntegerField()
-
+    order = models.PositiveIntegerField()
 
 class Area(models.Model):
     """

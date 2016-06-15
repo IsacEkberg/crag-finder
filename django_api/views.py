@@ -1,3 +1,5 @@
+import json
+
 import random
 import string
 
@@ -9,7 +11,7 @@ from django.utils import timezone
 from rest_framework import viewsets, filters
 
 from .models import Area, Parking, Route, RockFace, Club, AreaImage, RockFaceImage, APPROVED, BEING_REVIEWED_DELETE, \
-    Access
+    Access, RouteNode
 from .forms import NewUserForm
 from .models import Area, Parking, Route, RockFace, Club, AreaImage, RockFaceImage
 from .serializers import (
@@ -18,7 +20,10 @@ from .serializers import (
     ParkingSerializer,
     RouteSerializer,
     ClubSerializer,
-    AreaImageSerializer, RockFaceImageSerializer, AccessSerializer)
+    AreaImageSerializer,
+    RockFaceImageSerializer,
+    AccessSerializer,
+    RouteNodeSerializer)
 
 
 class AreaViewSet(viewsets.ModelViewSet):
@@ -81,3 +86,15 @@ def new_user_view(request):
     return render(request, template_name='django_api/new_user.html', context={
         'form': form,
     })
+
+
+class RouteNodeViewSet(viewsets.ModelViewSet):
+    serializer_class = RouteNodeSerializer
+    queryset = RouteNode.objects.all()
+
+
+def save_route_nodes(request):
+    if request.method == 'POST':
+        data = json.loads(request.POST)
+    else:
+        return redirect('disney')
