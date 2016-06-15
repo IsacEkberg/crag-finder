@@ -278,14 +278,14 @@ $('document').ready(function(){
         console.log("Draw lines!");
         $.each(routes, function (route_id, route) {
             if(route.length > 1){
-                for(var i = 1; i < route.length; i++){
+                for(var i = 1; i < (route.length); i++){
 
                     if(!(route_id in lines)){
                         lines[route_id] = [];
                     }
 
                     var line = null;
-                    if(typeof lines[route_id][i] === 'undefined'){  //It should be one shorter.
+                    if(typeof lines[route_id][i-1] === 'undefined'){
                         line = makeLine();
                         setLineCoords(line, route[i-1], route[i]);
                         lines[route_id].push(line);
@@ -293,7 +293,7 @@ $('document').ready(function(){
                         line.sendToBack();
                         console.log("Added line:");
                     } else {
-                        line = lines[route_id][i];
+                        line = lines[route_id][i-1];
                         setLineCoords(line, route[i-1], route[i]);
                     }
                }
@@ -321,6 +321,7 @@ $('document').ready(function(){
             canvas.setBackgroundImage(data.image.image, canvas.renderAll.bind(canvas), {
                 backgroundImageStretch: false
             });
+            canvas.selection = false; //Disables box selection
             canvas.on({
                 'mouse:down': onCanvasClick,
                 'object:moving': drawLines
