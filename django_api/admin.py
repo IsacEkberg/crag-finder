@@ -219,6 +219,11 @@ class RockFaceAdmin(VersionAdmin):
 
     @transaction.atomic
     def save_related(self, request, form, formsets, change):
+        if request.user.is_superuser or is_trusted(request.user):
+            form.save_m2m()
+            for formset in formsets:
+                self.save_formset(request, form, formset, change=change)
+            return
         instance = RockFace.objects.get(pk=form.instance.pk)
         for formset in formsets:
             for m in formset.cleaned_data:
@@ -280,15 +285,25 @@ class RockFaceInline(admin.StackedInline):
 
     def admin_link(self, instance):
         if instance.id:
-            url = reverse('admin:{:}_{:}_change'.format(instance._meta.app_label, instance._meta.model_name), args=(instance.id,))
-            return mark_safe('<a target="_blank" href="{:}">Lägg till information, leder karta, bilder etc.</a>'.format(url))
+            url = reverse('admin:{:}_{:}_change'.format(
+                instance._meta.app_label,
+                instance._meta.model_name), args=(instance.id,))
+            return mark_safe('<a target="_blank" href="{:}">'.format(url) +
+                             'Lägg till information, leder karta, bilder etc.</a>')
         else:
             return 'Tryck "Spara och fortsätt redigera" för att kunna administrera klippan.'
 
+    def access_link(self, instance):
+        return mark_safe(
+                '<a target="_blank" href="/admin/django_api/access/?rock_face__name={:}">'.format(instance.name) +
+                'Visa/ändra accessdata för klippan.</a>')
+
     admin_link.short_description = 'Admin länk'
     admin_link.allow_tags = True
-    readonly_fields = ('admin_link',)
-    fields = ['name', 'admin_link']
+    access_link.short_description = 'Accessdata'
+    access_link.allow_tags = True
+    readonly_fields = ('admin_link', 'access_link')
+    fields = ['name', 'admin_link', 'access_link']
     extra = 0
 
     def has_module_permission(self, request):
@@ -358,6 +373,11 @@ class AreaAdmin(VersionAdmin):
 
     @transaction.atomic
     def save_related(self, request, form, formsets, change):
+        if request.user.is_superuser or is_trusted(request.user):
+            form.save_m2m()
+            for formset in formsets:
+                self.save_formset(request, form, formset, change=change)
+            return
         form.save_m2m()
         instance = Area.objects.get(pk=form.instance.pk)
         for formset in formsets:
@@ -549,6 +569,41 @@ class ChangeAdmin(admin.ModelAdmin):
             obj.delete()
 
 
+class AccessAdmin(admin.ModelAdmin):
+    model = Access
+    fields = [
+        "short_message",
+        "long_message",
+        "start_date",
+        "stop_date",
+        "rock_face"]
+
+    def areas(self):
+        return ', '.join(['<a href="{url}">{name}</a>'.format(
+            url=reverse('admin:{:}_{:}_change'.format(
+                x.area._meta.app_label,
+                x.area._meta.model_name), args=(x.area.pk,)),
+            name=x.area.name) for x in self.rock_face.all()])
+
+    areas.allow_tags = True
+    areas.short_description = 'Områden'
+
+    def rock_faces(self):
+        return ', '.join(['<a href="{url}">{name}</a>'.format(
+            url=reverse('admin:{:}_{:}_change'.format(x._meta.app_label, x._meta.model_name), args=(x.pk,)),
+            name=x.name) for x in self.rock_face.all()])
+
+    rock_faces.allow_tags = True
+    rock_faces.short_description = 'Klippor'
+
+    search_fields = ['short_message', 'rock_face__name', 'rock_face__area__name', "start_date", "stop_date"]
+    list_display = ('short_message', rock_faces, areas, "start_date", "stop_date")
+    list_filter = ('short_message','rock_face__name', 'rock_face__area__name')
+    formfield_overrides = {
+        ManyToManyField: {'widget': FilteredSelectMultiple("", is_stacked=False)},
+    }
+
+
 class RouteNodeInline(admin.StackedInline):
     model = RouteNode
 
@@ -576,4 +631,5 @@ admin.site.register(Area, AreaAdmin)
 admin.site.register(RockFace, RockFaceAdmin)
 admin.site.register(Club, AdminClub)
 admin.site.register(RockFaceImage, RockFaceImageAdmin)
+admin.site.register(Access, AccessAdmin)
 

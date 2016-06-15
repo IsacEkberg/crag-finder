@@ -198,6 +198,7 @@ class RockFace(models.Model):
         default=APPROVED,
         blank=False,
         null=False)
+
     class Meta:
         verbose_name = 'klippa'
         verbose_name_plural = 'klippor'
@@ -207,7 +208,7 @@ class RockFace(models.Model):
         return len(Route.objects.filter(rock_face__exact=self))
 
     def __str__(self):
-        return self.name
+        return self.area.name + " | " + self.name
 
 
 class Parking(models.Model):
@@ -479,6 +480,26 @@ class Change(models.Model):
 class CragfinderProfile(models.Model):
     user = models.OneToOneField(User, related_name='cf_profile')
     is_trusted = models.BooleanField(default=False, verbose_name="är betrodd")
+
+
+class Access(models.Model):
+    short_message = models.CharField(null=False, blank=False, verbose_name="kort meddelande", max_length=255)
+    long_message = models.TextField(null=True, blank=True, verbose_name="längre version av meddelandet")
+    start_date = models.DateField(verbose_name="startdatum", null=True, blank=True)
+    stop_date = models.DateField(verbose_name="stoppdatum", null=True, blank=True)
+    rock_face = models.ManyToManyField("RockFace", verbose_name="klippa", blank=False, related_name="access")
+
+    class Meta:
+        verbose_name = 'accessdata'
+        verbose_name_plural = 'accessdata'
+
+    def __str__(self):
+        rf = self.rock_face.values('name', 'area__name')
+        tmp = ""
+        for r in rf:
+            tmp += "(" + r['area__name'] + ", " + r['name'] + ") "
+        return tmp + " | " + self.short_message
+
 
 reversion.register(Area, follow=["rockfaces", "parking", "image"])
 reversion.register(RockFace, follow=["routes", "image"])

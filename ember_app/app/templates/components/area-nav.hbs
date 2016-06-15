@@ -47,7 +47,11 @@
             <div class="col-md-12">
               {{#each model.rockfaces as |rockface|}}
                   <h2>Leder på {{rockface.name}}</h2>
-
+                {{#if rockface.access}}
+                  {{#each rockface.access as |access|}}
+                    Access info: {{ access.short_message }}
+                  {{/each}}
+                {{/if}}
                 {{#if rockface.image}}
                     <p>Nedan visas bilder på klipp sidor med tillhörande leder.</p>
                 {{/if}}
