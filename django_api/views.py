@@ -93,8 +93,9 @@ class RouteNodeViewSet(viewsets.ModelViewSet):
     queryset = RouteNode.objects.all()
 
 
-def save_route_nodes(request):
+#TODO: Finish view.
+def save_route_nodes(request, pk):
     if request.method == 'POST':
-        data = json.loads(request.POST)
+        data = request.POST
     else:
         return redirect('disney')

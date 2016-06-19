@@ -9,10 +9,11 @@
 if(!$) {
     $ = django.jQuery;
 }
+$('document').ready(function(){
 
 function get_data(id) {
     var data_promise = $.Deferred();
-    //Parallel: Rockface(then routes) & image(then nodes)
+    //Parallel: Rock face (then routes) & image(then nodes)
 
     function get_routes_data(routes) {
         var route_promise = $.Deferred();
@@ -38,23 +39,23 @@ function get_data(id) {
     function get_rockface_data(rockface_id){
         var rockface_promise = $.Deferred();
         var rockface_data = null;
-            $.getJSON('/api/v1/rockfaces/' + rockface_id)
-                .done(function ( data ) {
-                    rockface_data = data;
-                    return get_routes_data(rockface_data.routes)
-                        .done(function (route_data) {
+        $.getJSON('/api/v1/rockfaces/' + rockface_id)
+            .done(function ( data ) {
+                rockface_data = data;
+                return get_routes_data(rockface_data.routes)
+                    .done(function (route_data) {
                             rockface_promise.resolve({
                                 rockface: rockface_data, routes: route_data});
                         }
                     );
-                });
+            });
         return rockface_promise;
     }
 
     function get_image_data(rockface_id){
         var image_promise = $.Deferred();
         $.getJSON('http://127.0.0.1:1337/api/v1/rockfaceimages/?rockface=' + id).
-            done(function (rockfaceimage_data) {
+        done(function (rockfaceimage_data) {
             image_promise.resolve(rockfaceimage_data);
         });
         return image_promise;
@@ -62,16 +63,16 @@ function get_data(id) {
 
 
     $.when(get_rockface_data(id), get_image_data(id)).done(function (rockface_data, image_data) {
-       data_promise.resolve({
-           rockface: rockface_data.rockface,
-           routes: rockface_data.routes,
-           image: image_data[0]
-       });
+        data_promise.resolve({
+            rockface: rockface_data.rockface,
+            routes: rockface_data.routes,
+            image: image_data[0]
+        });
     });
 
 
     return data_promise;
-    }
+}
 
 function insert_dom_elements(w, h, routes, route_callback, save_callback) {
     var $canvas_element = "<canvas id=\"fabric_canvas\" width=\"" + w + "\" height=\"" + h + "\"></canvas>";
@@ -93,6 +94,7 @@ function insert_dom_elements(w, h, routes, route_callback, save_callback) {
 
     var $save_button = $("<input>", {type: 'submit', class: 'default', value: 'Spara'});
     $save_button.click(function (e) {
+        console.log("Save button clicked.");
         e.preventDefault();
         save_callback();
     });
@@ -105,7 +107,6 @@ function insert_dom_elements(w, h, routes, route_callback, save_callback) {
 }
 
 
-$('document').ready(function(){
     //Global variables:
     var SAVE_ROUTE_NODE_URL = '/api/v1/routenodes/save/';
 
@@ -131,30 +132,30 @@ $('document').ready(function(){
     var selectedObject = null;  //Selected node.
     var routes = {};  //Holds properties of arrays (name=route_id). Circles are in array. Element 0 is first
     /*
-       EXAMPLE:
+     EXAMPLE:
 
-        routes = {
-            1: [circle_0, circle_1, circle_2],
-            2: [circle_0, circle_3, circle_4, circle_5],
-            3: [circle_6, circle_7, circle_5]
-        }
+     routes = {
+     1: [circle_0, circle_1, circle_2],
+     2: [circle_0, circle_3, circle_4, circle_5],
+     3: [circle_6, circle_7, circle_5]
+     }
 
-        3 routes, route 1 & 2 share start. route 2 & 3 share end anchor.
-        circle 0 & 6 are starting nodes.
+     3 routes, route 1 & 2 share start. route 2 & 3 share end anchor.
+     circle 0 & 6 are starting nodes.
      */
 
     var lines = {}; //Holds the drawn lines between route nodes.
     /*
-        EXAMPLE:
+     EXAMPLE:
 
-        lines = {
-            1: [line_0_1, line_1_2],
-            2: [line_0_3, line_3_4, line_4_5],
-            3: [line_6_7, line_7_5]
-        }
-        Based on routes example above. line_x_y refers to the line between node x and y.
-        lines property (1-3 in example) are Django route IDs, same as in routes.
-    */
+     lines = {
+     1: [line_0_1, line_1_2],
+     2: [line_0_3, line_3_4, line_4_5],
+     3: [line_6_7, line_7_5]
+     }
+     Based on routes example above. line_x_y refers to the line between node x and y.
+     lines property (1-3 in example) are Django route IDs, same as in routes.
+     */
     var active_route = null; //The selected route
 
     //Django ID of image.
@@ -192,15 +193,17 @@ $('document').ready(function(){
         circle.on({
             'selected': markSelectedCircle
         });
-        circle.selected = true;
         canvas.add(circle);
+        canvas.setActiveObject(circle);
         routes[active_route].push(circle);
         drawLines();
     }
 
     function markSelectedCircle() {
         console.log('markCircle()');
+
         unMarkCircle(selectedObject);
+        if(typeof this.animate === "undefined"){return}
         this.animate('radius', CIRCLE_RADIUS+3, {
             onChange: canvas.renderAll.bind(canvas),
             duration: 200
@@ -224,29 +227,29 @@ $('document').ready(function(){
     }
 
     function markActiveCircles() {
-      console.log('markActiveCircles()');
-      $.each(routes, function (index, route) {
-          $.each(route, function (index, circle) {
-                  circle.set('stroke', CIRCLE_INACTIVE_COLOR);
-          });
-      });
-      $.each(routes[active_route], function (index, circle) {
-              circle.set('stroke', CIRCLE_ACTIVE_COLOR);
-      });
-      canvas.renderAll();
+        console.log('markActiveCircles()');
+        $.each(routes, function (index, route) {
+            $.each(route, function (index, circle) {
+                circle.set('stroke', CIRCLE_INACTIVE_COLOR);
+            });
+        });
+        $.each(routes[active_route], function (index, circle) {
+            circle.set('stroke', CIRCLE_ACTIVE_COLOR);
+        });
+        canvas.renderAll();
     }
 
     function unMarkCircle(s) {
-      console.log('unMarkCircle()');
-      if (s == null) {
-        console.log("- null");
-        return;
-      }
-      s.animate('radius', CIRCLE_RADIUS, {
-        onChange: canvas.renderAll.bind(canvas),
-        duration: 200
-      });
-      s.set('stroke', CIRCLE_ACTIVE_COLOR);
+        console.log('unMarkCircle()');
+        if (s == null) {
+            console.log("- null");
+            return;
+        }
+        s.animate('radius', CIRCLE_RADIUS, {
+            onChange: canvas.renderAll.bind(canvas),
+            duration: 200
+        });
+        s.set('stroke', CIRCLE_ACTIVE_COLOR);
     }
 
     //Unselect the selected and switch route to edit.
@@ -261,10 +264,10 @@ $('document').ready(function(){
     function drawLines(){
         function makeLine() {
             var line = new fabric.Line({
-               fill: LINE_ACTIVE_COLOR,
-               stroke: LINE_ACTIVE_COLOR,
-               strokeWidth: LINE_THICKNESS,
-               selectable: false
+                fill: LINE_ACTIVE_COLOR,
+                stroke: LINE_ACTIVE_COLOR,
+                strokeWidth: LINE_THICKNESS,
+                selectable: false
             });
             line.set('fill', LINE_ACTIVE_COLOR);
             line.set('stroke', LINE_ACTIVE_COLOR);
@@ -300,7 +303,7 @@ $('document').ready(function(){
                         line = lines[route_id][i-1];
                         setLineCoords(line, route[i-1], route[i]);
                     }
-               }
+                }
             } else {
                 console.log("No line for route: " + route_id);
             }
@@ -310,15 +313,71 @@ $('document').ready(function(){
     }
 
     function save_data_cb(){
-        $.post(SAVE_ROUTE_NODE_URL + object_id + "/", routes, function () {
-            console.log("Saved successfull!");
+        var url = SAVE_ROUTE_NODE_URL + object_id + "/";
+        var data = {};
+        //Trouble to JSON-encode whole fabricjs object... 
+        $.each(routes, function (route_name, route_data) {
+           if(route_data.length > 1){
+               data[route_name] = [];
+               $.each(route_data, function (index, circle) {
+                   var tmp_obj = {
+                       top: circle.top,
+                       left: circle.left,
+                       order: index
+                   };
+                   data[route_name].push(tmp_obj);
+               });
+           }
+        });
+        var success = function () {
+            console.log("Success!");
+        };
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: data,
+            success: success,
+            dataType: "json",
+            async: true
         });
         console.log("Saving data...");
     }
 
+    function init_csrf() {
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = $.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        var csrftoken = getCookie('csrftoken');
+
+        function csrfSafeMethod(method) {
+            // these HTTP methods do not require CSRF protection
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+    }
     function init() {
         console.log("Fabric loaded.");
         console.log(object_id);
+        init_csrf();
         get_data(object_id).done(function ( data ) {
             console.log("Loaded rockface+image data.");
             console.log(data);
