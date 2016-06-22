@@ -3,9 +3,11 @@ import json
 import random
 import string
 
+from django.http import JsonResponse
 from django.contrib.admin import filters
+from django.db import transaction
 from django.db.models import Q
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404, HttpResponse
 from django.contrib import messages
 from django.utils import timezone
 from rest_framework import viewsets, filters
@@ -94,8 +96,34 @@ class RouteNodeViewSet(viewsets.ModelViewSet):
 
 
 #TODO: Finish view.
+@transaction.atomic
 def save_route_nodes(request, pk):
+    rockface_image = get_object_or_404(RockFaceImage, pk=pk)
+    old_nodes = RouteNode.objects.filter(image=rockface_image)
+    # Validates if data is correct.
+    # Removes old route_nodes.
+    # Saves new ones.
+
     if request.method == 'POST':
-        data = request.POST
+        recieved_data = json.loads(request.body.decode('utf-8'))
+
+        if len(old_nodes) == 0:
+            print("no earlier nodes!")
+        else:
+            old_nodes.delete()
+
+        for route_id in recieved_data:
+            route = Route.objects.get(pk=route_id)  # Should probably throw exception and abort atomic transaction?
+            for route_node in recieved_data[route_id]:
+                node = RouteNode(
+                    image=rockface_image,
+                    pos_x=route_node['left'],
+                    pos_y=route_node['top'],
+                    order=route_node['order']
+                )
+                node.save()
+                route.route_nodes.add(node)
+
+        return HttpResponse(status=200)
     else:
-        return redirect('disney')
+        return redirect("/")

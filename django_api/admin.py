@@ -626,12 +626,12 @@ class RockFaceImageAdmin(admin.ModelAdmin):
             'fields': ('associated_routes',
                        'image_url',
                        'image_height',
-                       'image_width',
-                       'id')
+                       'image_width'
+                       )
         }),
         ('Rockface key', {
             'classes': ('collapse',),
-            'fields': ('rockface_key',),
+            'fields': ('rockface_key', 'id'),
         }),
     )
     class Media:

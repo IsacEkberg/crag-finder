@@ -110,4 +110,5 @@ class RouteNodeSerializer(serializers.ModelSerializer):
                   "image",
                   "pos_x",
                   "pos_y",
-                  "order")
+                  "order",
+                  "route_set")

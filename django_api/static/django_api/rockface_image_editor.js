@@ -10,103 +10,6 @@ if(!$) {
     $ = django.jQuery;
 }
 $('document').ready(function(){
-
-function get_data(id) {
-    var data_promise = $.Deferred();
-    //Parallel: Rock face (then routes) & image(then nodes)
-
-    function get_routes_data(routes) {
-        var route_promise = $.Deferred();
-        var route_data = {}; //Holds the data when finished.
-
-        function get_route_data(route){ //Get a single route.
-            return $.getJSON('/api/v1/routes/' + route).done(function (data) {
-                route_data[route] = data;
-            });
-        }
-
-        var promise_array = [];
-        $.each( routes, function (index, route) {
-            promise_array.push(get_route_data(route));
-        });
-
-        //When all promises in the promise_array are resolved. Resolve and return data.
-        $.when.apply($, promise_array).done(function () {route_promise.resolve(route_data);});
-
-        return route_promise;
-    }
-
-    function get_rockface_data(rockface_id){
-        var rockface_promise = $.Deferred();
-        var rockface_data = null;
-        $.getJSON('/api/v1/rockfaces/' + rockface_id)
-            .done(function ( data ) {
-                rockface_data = data;
-                return get_routes_data(rockface_data.routes)
-                    .done(function (route_data) {
-                            rockface_promise.resolve({
-                                rockface: rockface_data, routes: route_data});
-                        }
-                    );
-            });
-        return rockface_promise;
-    }
-
-    function get_image_data(rockface_id){
-        var image_promise = $.Deferred();
-        $.getJSON('http://127.0.0.1:1337/api/v1/rockfaceimages/?rockface=' + id).
-        done(function (rockfaceimage_data) {
-            image_promise.resolve(rockfaceimage_data);
-        });
-        return image_promise;
-    }
-
-
-    $.when(get_rockface_data(id), get_image_data(id)).done(function (rockface_data, image_data) {
-        data_promise.resolve({
-            rockface: rockface_data.rockface,
-            routes: rockface_data.routes,
-            image: image_data[0]
-        });
-    });
-
-
-    return data_promise;
-}
-
-function insert_dom_elements(w, h, routes, route_callback, save_callback) {
-    var $canvas_element = "<canvas id=\"fabric_canvas\" width=\"" + w + "\" height=\"" + h + "\"></canvas>";
-    var $route_list = $("<form>", {id: 'route-list'});
-
-    var $target_element = $("div#content-main");
-    $.each(routes, function (index, route) {
-        var $element = $("<div>", {class: "route"});
-        var $name = $("<p>").text(route.name);
-        var $checkbox = $("<input>", {type:'radio', name: 'route-select', value: route.id});
-        $checkbox.change(function() {
-            //returns id of selected route to callback.
-            route_callback($(this).val());
-        });
-        $element.append($checkbox);
-        $element.append($name);
-        $route_list.append($element);
-    });
-
-    var $save_button = $("<input>", {type: 'submit', class: 'default', value: 'Spara'});
-    $save_button.click(function (e) {
-        console.log("Save button clicked.");
-        e.preventDefault();
-        save_callback();
-    });
-
-    $target_element.prepend($route_list);
-    $target_element.prepend($save_button);
-    $target_element.prepend($canvas_element);
-
-
-}
-
-
     //Global variables:
     var SAVE_ROUTE_NODE_URL = '/api/v1/routenodes/save/';
 
@@ -159,7 +62,115 @@ function insert_dom_elements(w, h, routes, route_callback, save_callback) {
     var active_route = null; //The selected route
 
     //Django ID of image.
-    var object_id = false;
+    var rockface_id = false;
+    var rockfaceimage_id = false;
+
+    function get_data(id) {
+        var data_promise = $.Deferred();
+        //Parallel: Rock face (then routes) & image(then nodes)
+
+        function get_routes_data(routes) {
+            var route_promise = $.Deferred();
+            var route_data = {}; //Holds the data when finished.
+            var old_nodes = null;
+            function get_route_data(route){ //Get a single route.
+                return $.getJSON('/api/v1/routes/' + route).done(function (data) {
+                    route_data[route] = data;
+                });
+            }
+
+
+            var promise_array = [];
+            $.each( routes, function (index, route) {
+                promise_array.push(get_route_data(route));
+            });
+
+
+            //When all promises in the promise_array are resolved. Resolve and return data.
+
+            $.when.apply($, promise_array).done(function () {route_promise.resolve(route_data);});
+
+            return route_promise;
+        }
+
+        function get_rockface_data(rockface_id){
+            var rockface_promise = $.Deferred();
+            var rockface_data = null;
+            $.getJSON('/api/v1/rockfaces/' + rockface_id)
+                .done(function ( data ) {
+                    rockface_data = data;
+                    return get_routes_data(rockface_data.routes)
+                        .done(function (route_data) {
+                                rockface_promise.resolve({
+                                    rockface: rockface_data, routes: route_data});
+                            }
+                        );
+                });
+            return rockface_promise;
+        }
+
+        function get_image_data(rockface_id){
+            var image_promise = $.Deferred();
+            $.getJSON('/api/v1/rockfaceimages/?rockface=' + id).
+            done(function (rockfaceimage_data) {
+                image_promise.resolve(rockfaceimage_data);
+            });
+            return image_promise;
+        }
+        function get_old_nodes(){
+            var old_node_promise = $.Deferred();
+            $.get("/api/v1/routenodes/?image=" + rockfaceimage_id).done(function (data) {
+                old_node_promise.resolve(data);
+            });
+            return old_node_promise
+        }
+
+        $.when(get_rockface_data(id), get_image_data(id), get_old_nodes()).done(function (rockface_data, image_data, old_nodes) {
+            data_promise.resolve({
+                rockface: rockface_data.rockface,
+                routes: rockface_data.routes,
+                image: image_data[0],
+                old_nodes: old_nodes
+            });
+        });
+
+
+        return data_promise;
+    }
+
+    function insert_dom_elements(w, h, routes, route_callback, save_callback) {
+        var $canvas_element = "<canvas id=\"fabric_canvas\" width=\"" + w + "\" height=\"" + h + "\"></canvas>";
+        var $route_list = $("<form>", {id: 'route-list'});
+
+        var $target_element = $("div#content-main");
+        $.each(routes, function (index, route) {
+            var $element = $("<div>", {class: "route"});
+            var $name = $("<p>").text(route.name);
+            var $checkbox = $("<input>", {type:'radio', name: 'route-select', value: route.id});
+            $checkbox.change(function() {
+                //returns id of selected route to callback.
+                route_callback($(this).val());
+            });
+            $element.append($checkbox);
+            $element.append($name);
+            $route_list.append($element);
+        });
+
+        var $save_button = $("<input>", {type: 'submit', class: 'default', value: 'Spara'});
+        $save_button.click(function (e) {
+            console.log("Save button clicked.");
+            e.preventDefault();
+            save_callback();
+        });
+
+        $target_element.prepend($route_list);
+        $target_element.prepend($save_button);
+        $target_element.prepend($canvas_element);
+
+
+    }
+
+
 
     function onCanvasClick(options){
         console.log("onCanvasClick()");
@@ -175,10 +186,12 @@ function insert_dom_elements(w, h, routes, route_callback, save_callback) {
         }
     }
 
-    function addPoint(x, y){
-        if(active_route == null) {
+    function addPoint(x, y, force_route = false){
+        if(active_route == null && force_route === false) {
             alert("Välj en led först.");
             return;
+        } else if(force_route){
+            console.log("Force insert point.");
         }
         console.log("addPoint()");
         var circle = new fabric.Circle({
@@ -194,9 +207,13 @@ function insert_dom_elements(w, h, routes, route_callback, save_callback) {
             'selected': markSelectedCircle
         });
         canvas.add(circle);
-        canvas.setActiveObject(circle);
-        routes[active_route].push(circle);
-        drawLines();
+        if(!force_route) {
+            routes[active_route].push(circle);
+            canvas.setActiveObject(circle);
+            drawLines();
+        } else {
+            routes[force_route].push(circle);
+        }
     }
 
     function markSelectedCircle() {
@@ -313,29 +330,32 @@ function insert_dom_elements(w, h, routes, route_callback, save_callback) {
     }
 
     function save_data_cb(){
-        var url = SAVE_ROUTE_NODE_URL + object_id + "/";
+        var url = SAVE_ROUTE_NODE_URL + rockfaceimage_id + "/";
         var data = {};
         //Trouble to JSON-encode whole fabricjs object... 
         $.each(routes, function (route_name, route_data) {
-           if(route_data.length > 1){
-               data[route_name] = [];
-               $.each(route_data, function (index, circle) {
-                   var tmp_obj = {
-                       top: circle.top,
-                       left: circle.left,
-                       order: index
-                   };
-                   data[route_name].push(tmp_obj);
-               });
-           }
+            if(route_data.length > 1){
+                data[route_name] = [];
+                $.each(route_data, function (index, circle) {
+                    var tmp_obj = {
+                        top: circle.top,
+                        left: circle.left,
+                        order: index
+                    };
+                    data[route_name].push(tmp_obj);
+                });
+            }
         });
+
+        var json_data = JSON.stringify(data);
         var success = function () {
             console.log("Success!");
         };
         $.ajax({
             type: "POST",
             url: url,
-            data: data,
+            contentType:'application/json',
+            data: json_data,
             success: success,
             dataType: "json",
             async: true
@@ -376,16 +396,19 @@ function insert_dom_elements(w, h, routes, route_callback, save_callback) {
     }
     function init() {
         console.log("Fabric loaded.");
-        console.log(object_id);
+        console.log(rockface_id);
         init_csrf();
-        get_data(object_id).done(function ( data ) {
+        get_data(rockface_id).done(function ( data ) {
             console.log("Loaded rockface+image data.");
-            console.log(data);
+
+            var old_nodes = data['old_nodes'];
             var w = data.image.image_width;
             var h = data.image.image_height;
+
             $.each(data.routes, function (index, route) {
-                routes[route.id] = [];
+                routes[route.id] = [];  //Make sure routes has an array for each route.
             });
+
             insert_dom_elements(w, h, data.routes, activate_route_cb, save_data_cb);
             canvas = new fabric.Canvas("fabric_canvas");
             canvas.setBackgroundImage(data.image.image, canvas.renderAll.bind(canvas), {
@@ -396,12 +419,32 @@ function insert_dom_elements(w, h, routes, route_callback, save_callback) {
                 'mouse:down': onCanvasClick,
                 'object:moving': drawLines
             });
+
+            //Add old nodes:
+            function compare_nodes(a,b){
+                if (a.order < b.order) {
+                    return -1;
+                } else if (a.order > b.order){
+                    return 1;
+                } else {
+                    return 0;
+                }
+
+            }
+            $.each(old_nodes, function (index, node) {
+                old_nodes.sort(compare_nodes);
+                $.each(node.route_set, function (index, route_id) {
+                    addPoint(node.pos_x, node.pos_y, route_id);
+                });
+            });
+            drawLines();
         });
     }
 
     //Start.
-    object_id = $("div.field-rockface_key").children("div").children("p").text();
-    if(object_id){
+    rockface_id = $("div.field-rockface_key").children("div").children("p").text();
+    rockfaceimage_id = $("div.field-id").children("div").children("p").text();
+    if(rockface_id && rockfaceimage_id){
         $.getScript('https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.2/fabric.min.js', init);
     } else {
         console.log("No id found.");
