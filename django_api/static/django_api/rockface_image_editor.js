@@ -193,7 +193,7 @@ $('document').ready(function(){
             return;
         } else if(force_route){
             console.log("Force insert point.");
-            offset = 0;  // If force is it the true top/left values being sent. 
+            offset = 0;  // If force is it the true top/left values being sent.
         }
         console.log("addPoint()");
         var circle = new fabric.Circle({
@@ -277,19 +277,20 @@ $('document').ready(function(){
         unMarkCircle(selectedObject);
         selectedObject = null;
         markActiveCircles();
+        drawLines();
         console.log("Activated route: " + route);
     }
 
     function drawLines(){
         function makeLine() {
             var line = new fabric.Line({
-                fill: LINE_ACTIVE_COLOR,
-                stroke: LINE_ACTIVE_COLOR,
+                fill: LINE_INACTIVE_COLOR,
+                stroke: LINE_INACTIVE_COLOR,
                 strokeWidth: LINE_THICKNESS,
                 selectable: false
             });
-            line.set('fill', LINE_ACTIVE_COLOR);
-            line.set('stroke', LINE_ACTIVE_COLOR);
+            line.set('fill', LINE_INACTIVE_COLOR);
+            line.set('stroke', LINE_INACTIVE_COLOR);
             line.set('strokeWidth', 5);
             line.set('selectable', false);
             return line;
@@ -321,6 +322,13 @@ $('document').ready(function(){
                     } else {
                         line = lines[route_id][i-1];
                         setLineCoords(line, route[i-1], route[i]);
+                        if(route_id === active_route){
+                            line.set('fill', LINE_ACTIVE_COLOR);
+                            line.set('stroke', LINE_ACTIVE_COLOR);
+                        } else {
+                            line.set('fill', LINE_INACTIVE_COLOR);
+                            line.set('stroke', LINE_INACTIVE_COLOR);
+                        }
                     }
                 }
             } else {
