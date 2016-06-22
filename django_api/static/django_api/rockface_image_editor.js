@@ -187,16 +187,18 @@ $('document').ready(function(){
     }
 
     function addPoint(x, y, force_route = false){
+        var offset = CIRCLE_RADIUS;
         if(active_route == null && force_route === false) {
             alert("Välj en led först.");
             return;
         } else if(force_route){
             console.log("Force insert point.");
+            offset = 0;  // If force is it the true top/left values being sent. 
         }
         console.log("addPoint()");
         var circle = new fabric.Circle({
-            left: x - CIRCLE_RADIUS,
-            top: y - CIRCLE_RADIUS,
+            left: x - offset,
+            top: y - offset,
             strokeWidth: CIRCLE_THICKNESS,
             radius: CIRCLE_RADIUS,
             fill: TRANSPARENT_COLOR,
