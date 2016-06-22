@@ -304,13 +304,25 @@ $('document').ready(function(){
 
         console.log("Draw lines!");
         $.each(routes, function (route_id, route) {
-            if(route.length > 1){
+
+
+            if(!(route_id in lines)){
+                lines[route_id] = [];
+            }
+            if(route.length <= 1) {
+                return true;  //Breaks loop.
+            }
+            var line_num = lines[route_id].length;
+            var route_num = routes[route_id].length;
+            if(lines[route_id].length >= routes[route_id].length-1){
+                //Delete has happened. Remove it all.
+                $.each(lines[route_id], function (index, line) {
+                    canvas.remove(line);
+                });
+                lines[route_id] = [];
+            }
+
                 for(var i = 1; i < (route.length); i++){
-
-                    if(!(route_id in lines)){
-                        lines[route_id] = [];
-                    }
-
                     var line = null;
                     if(typeof lines[route_id][i-1] === 'undefined'){
                         line = makeLine();
@@ -331,9 +343,6 @@ $('document').ready(function(){
                         }
                     }
                 }
-            } else {
-                console.log("No line for route: " + route_id);
-            }
         });
         console.log("RenderAll()");
         canvas.renderAll();
@@ -371,6 +380,29 @@ $('document').ready(function(){
             async: true
         });
         console.log("Saving data...");
+    }
+
+    function deleteNode(){
+        if(selectedObject == null){return;}
+
+        var to_delete = [];
+        var new_arrays = {};
+
+        //Search for references and filter away selected node.
+        $.each(routes, function (route_id, route_array) {
+            new_arrays[route_id] = $.grep(route_array, function (value) {
+                return value !== selectedObject;
+            });
+        });
+        //Replace old arrays.
+        $.each(new_arrays, function (route_id, route_array) {
+            routes[route_id] = route_array;
+        });
+
+        canvas.remove(selectedObject);
+        selectedObject = null;  //Garbage collector remoces old circle?
+        drawLines();
+
     }
 
     function init_csrf() {
@@ -429,7 +461,12 @@ $('document').ready(function(){
                 'mouse:down': onCanvasClick,
                 'object:moving': drawLines
             });
-
+            $('body').keyup(function (e) {
+                if(e.keyCode === 46){  //46 = delete.
+                    console.log("delete node!");
+                    deleteNode();
+                }
+            });
             //Add old nodes:
             function compare_nodes(a,b){
                 if (a.order < b.order) {
