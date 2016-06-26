@@ -112,16 +112,24 @@ def save_route_nodes(request, pk):
         else:
             old_nodes.delete()
 
+        double_nodes = {}
         for route_id in recieved_data:
             route = Route.objects.get(pk=route_id)  # Should probably throw exception and abort atomic transaction?
+
             for route_node in recieved_data[route_id]:
-                node = RouteNode(
-                    image=rockface_image,
-                    pos_x=route_node['left'],
-                    pos_y=route_node['top'],
-                    order=route_node['order']
-                )
-                node.save()
+
+                temp_id = str(route_node['left']) + str(route_node['top'])
+                if temp_id in double_nodes:
+                    node = double_nodes[temp_id]
+                else:
+                    node = RouteNode(
+                        image=rockface_image,
+                        pos_x=route_node['left'],
+                        pos_y=route_node['top'],
+                        order=route_node['order']
+                    )
+                    node.save()
+                    double_nodes[temp_id] = node
                 route.route_nodes.add(node)
 
         return HttpResponse(status=200)

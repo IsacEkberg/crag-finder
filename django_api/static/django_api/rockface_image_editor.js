@@ -122,7 +122,7 @@ $('document').ready(function(){
             $.get("/api/v1/routenodes/?image=" + rockfaceimage_id).done(function (data) {
                 old_node_promise.resolve(data);
             });
-            return old_node_promise
+            return old_node_promise;
         }
 
         $.when(get_rockface_data(id), get_image_data(id), get_old_nodes()).done(function (rockface_data, image_data, old_nodes) {
@@ -216,6 +216,7 @@ $('document').ready(function(){
         } else {
             routes[force_route].push(circle);
         }
+        return circle;
     }
 
     function markSelectedCircle() {
@@ -322,27 +323,27 @@ $('document').ready(function(){
                 lines[route_id] = [];
             }
 
-                for(var i = 1; i < (route.length); i++){
-                    var line = null;
-                    if(typeof lines[route_id][i-1] === 'undefined'){
-                        line = makeLine();
-                        setLineCoords(line, route[i-1], route[i]);
-                        lines[route_id].push(line);
-                        canvas.add(line);
-                        line.sendToBack();
-                        console.log("Added line:");
+            for(var i = 1; i < (route.length); i++){
+                var line = null;
+                if(typeof lines[route_id][i-1] === 'undefined'){
+                    line = makeLine();
+                    setLineCoords(line, route[i-1], route[i]);
+                    lines[route_id].push(line);
+                    canvas.add(line);
+                    line.sendToBack();
+                    console.log("Added line:");
+                } else {
+                    line = lines[route_id][i-1];
+                    setLineCoords(line, route[i-1], route[i]);
+                    if(route_id === active_route){
+                        line.set('fill', LINE_ACTIVE_COLOR);
+                        line.set('stroke', LINE_ACTIVE_COLOR);
                     } else {
-                        line = lines[route_id][i-1];
-                        setLineCoords(line, route[i-1], route[i]);
-                        if(route_id === active_route){
-                            line.set('fill', LINE_ACTIVE_COLOR);
-                            line.set('stroke', LINE_ACTIVE_COLOR);
-                        } else {
-                            line.set('fill', LINE_INACTIVE_COLOR);
-                            line.set('stroke', LINE_INACTIVE_COLOR);
-                        }
+                        line.set('fill', LINE_INACTIVE_COLOR);
+                        line.set('stroke', LINE_INACTIVE_COLOR);
                     }
                 }
+            }
         });
         console.log("RenderAll()");
         canvas.renderAll();
@@ -368,7 +369,7 @@ $('document').ready(function(){
 
         var json_data = JSON.stringify(data);
         var success = function () {
-            console.log("Success!");
+            console.log("Successfully saved data.");
         };
         $.ajax({
             type: "POST",
@@ -478,17 +479,21 @@ $('document').ready(function(){
                 }
 
             }
+            old_nodes.sort(compare_nodes);
             $.each(old_nodes, function (index, node) {
-                old_nodes.sort(compare_nodes);
-                $.each(node.route_set, function (index, route_id) {
-                    addPoint(node.pos_x, node.pos_y, route_id);
-                });
+                var circle = addPoint(node.pos_x, node.pos_y, node.route_set[0]);
+                if(node.route_set.length > 1) {
+                    for (var i = 1; i < node.route_set.length; i++) {
+                        var r_id = node.route_set[i];
+                        routes[r_id].push(circle);
+                    }
+                }
             });
             drawLines();
         });
     }
 
-    //Start.
+//Start.
     rockface_id = $("div.field-rockface_key").children("div").children("p").text();
     rockfaceimage_id = $("div.field-id").children("div").children("p").text();
     if(rockface_id && rockfaceimage_id){
