@@ -1,8 +1,6 @@
 import os
 
 from django.core.validators import RegexValidator
-from django.db.models.signals import pre_delete
-from django.dispatch import receiver
 from django.utils import timezone
 from pagedown.widgets import AdminPagedownWidget
 from reversion import revisions as reversion
@@ -11,6 +9,7 @@ from django.contrib.auth.models import User
 from django.utils.dateformat import format as date_format
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+
 
 def _image_file_path(instance, filename):
     """Returns the subfolder in which to upload images for articles. This results in media/article/img/<filename>"""
@@ -32,6 +31,7 @@ STATUSES = (
     (BEING_REVIEWED_DELETE, "Väntar på att bli borttagen"),
     (APPROVED, "Godkänt")
 )
+
 
 class MarkDownTextField(models.TextField):
     widget = AdminPagedownWidget
@@ -83,13 +83,13 @@ class RockFaceImage(models.Model):
         null=False)
 
     def image_tag(self):
-        return u'<img src="{0}" />'.format(self.image.url)
+        return '<img src="{0}" />'.format(self.image.url)
 
     image_tag.short_description = 'Bild'
     image_tag.allow_tags = True
 
     def associated_routes(self):
-        return Route.objects.filter(rock_face=self.rockface)  # TODO: Use relationship instead.
+        return self.rockface.routes.all()
 
     @property
     def image_url(self):
@@ -124,6 +124,7 @@ class RouteNode(models.Model):
     pos_y = models.IntegerField()
     order = models.PositiveIntegerField()
 
+
 class Area(models.Model):
     """
     A climbing area. Contains several crags. A parking or more.
@@ -153,11 +154,11 @@ class Area(models.Model):
 
     @property
     def faces(self):
-        return len(RockFace.objects.filter(area__exact=self))
+        return self.rockfaces.all().count()
 
     @property
     def routes(self):
-        return Route.objects.filter(rock_face__exact=RockFace.objects.filter(area__exact=self)).count()
+        return Route.objects.filter(rock_face=self.rockfaces.all()).count()
 
     def __str__(self):
         return self.name
@@ -205,7 +206,7 @@ class RockFace(models.Model):
 
     @property
     def num_routes(self):
-        return len(Route.objects.filter(rock_face__exact=self))
+        return self.rockface_set.all().count()
 
     def __str__(self):
         return self.area.name + " | " + self.name
@@ -250,7 +251,7 @@ class Route(models.Model):
         blank=False,
         null=False)
 
-    #Grade constans
+    # Grade constans
     PROJECT = 'no'
 
     FOUR_A_MINUS = '4a-'
@@ -401,7 +402,7 @@ class Route(models.Model):
                             default=TYPE_SPORT,
                             blank=False)
 
-    #routeline = models.CharField(max_length=300, default="[]", null=True, blank=True)
+    # routeline = models.CharField(max_length=300, default="[]", null=True, blank=True)
     class Meta:
         verbose_name = 'led'
         verbose_name_plural = 'leder'

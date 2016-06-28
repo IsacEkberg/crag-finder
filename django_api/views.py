@@ -95,7 +95,7 @@ class RouteNodeViewSet(viewsets.ModelViewSet):
     queryset = RouteNode.objects.all()
 
 
-#TODO: Finish view.
+# TODO: Finish view.
 @transaction.atomic
 def save_route_nodes(request, pk):
     rockface_image = get_object_or_404(RockFaceImage, pk=pk)
