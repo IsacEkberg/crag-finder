@@ -1,8 +1,6 @@
 import os
 
 from django.core.validators import RegexValidator
-from django.db.models.signals import pre_delete
-from django.dispatch import receiver
 from django.utils import timezone
 from pagedown.widgets import AdminPagedownWidget
 from reversion import revisions as reversion
@@ -11,6 +9,7 @@ from django.contrib.auth.models import User
 from django.utils.dateformat import format as date_format
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+
 
 def _image_file_path(instance, filename):
     """Returns the subfolder in which to upload images for articles. This results in media/article/img/<filename>"""
@@ -32,6 +31,7 @@ STATUSES = (
     (BEING_REVIEWED_DELETE, "Väntar på att bli borttagen"),
     (APPROVED, "Godkänt")
 )
+
 
 class MarkDownTextField(models.TextField):
     widget = AdminPagedownWidget
@@ -82,6 +82,31 @@ class RockFaceImage(models.Model):
         blank=False,
         null=False)
 
+    def image_tag(self):
+        return '<img src="{0}" />'.format(self.image.url)
+
+    image_tag.short_description = 'Bild'
+    image_tag.allow_tags = True
+
+    def associated_routes(self):
+        return self.rockface.routes.all()
+
+    @property
+    def image_url(self):
+        return self.image.url
+
+    @property
+    def image_height(self):
+        return self.image.height
+
+    @property
+    def image_width(self):
+        return self.image.width
+
+    @property
+    def rockface_key(self):
+        return self.rockface.id
+
     class Meta:
         verbose_name = 'bild på klippan'
         verbose_name_plural = 'bilder på klippan'
@@ -91,6 +116,13 @@ class RockFaceImage(models.Model):
             return "{:}-{:}".format(self.rockface.name, self.name)
         except:
             return "{:}-{:}".format(self.rockface.name,  os.path.basename(self.image.name))
+
+
+class RouteNode(models.Model):
+    image = models.ForeignKey(RockFaceImage)
+    pos_x = models.IntegerField()
+    pos_y = models.IntegerField()
+    order = models.PositiveIntegerField()
 
 
 class Area(models.Model):
@@ -122,11 +154,11 @@ class Area(models.Model):
 
     @property
     def faces(self):
-        return len(RockFace.objects.filter(area__exact=self))
+        return self.rockfaces.all().count()
 
     @property
     def routes(self):
-        return Route.objects.filter(rock_face__exact=RockFace.objects.filter(area__exact=self)).count()
+        return Route.objects.filter(rock_face=self.rockfaces.all()).count()
 
     def __str__(self):
         return self.name
@@ -173,8 +205,8 @@ class RockFace(models.Model):
         verbose_name_plural = 'klippor'
 
     @property
-    def routes(self):
-        return len(Route.objects.filter(rock_face__exact=self))
+    def num_routes(self):
+        return self.rockface_set.all().count()
 
     def __str__(self):
         return self.area.name + " | " + self.name
@@ -203,6 +235,8 @@ class Route(models.Model):
     image = models.ForeignKey(RockFaceImage, verbose_name="bild", blank=True, null=True)
     nr_of_bolts = models.PositiveIntegerField(verbose_name="antal bultar", blank=True, null=True)
 
+    route_nodes = models.ManyToManyField(RouteNode)
+
     replacing = models.ForeignKey(
         'self',
         null=True,
@@ -217,7 +251,7 @@ class Route(models.Model):
         blank=False,
         null=False)
 
-    #Grade constans
+    # Grade constans
     PROJECT = 'no'
 
     FOUR_A_MINUS = '4a-'
@@ -368,7 +402,7 @@ class Route(models.Model):
                             default=TYPE_SPORT,
                             blank=False)
 
-    #routeline = models.CharField(max_length=300, default="[]", null=True, blank=True)
+    # routeline = models.CharField(max_length=300, default="[]", null=True, blank=True)
     class Meta:
         verbose_name = 'led'
         verbose_name_plural = 'leder'

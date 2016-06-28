@@ -1,15 +1,19 @@
+import json
+
 import random
 import string
 
+from django.http import JsonResponse
 from django.contrib.admin import filters
+from django.db import transaction
 from django.db.models import Q
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404, HttpResponse
 from django.contrib import messages
 from django.utils import timezone
 from rest_framework import viewsets, filters
 
 from .models import Area, Parking, Route, RockFace, Club, AreaImage, RockFaceImage, APPROVED, BEING_REVIEWED_DELETE, \
-    Access
+    Access, RouteNode
 from .forms import NewUserForm
 from .models import Area, Parking, Route, RockFace, Club, AreaImage, RockFaceImage
 from .serializers import (
@@ -18,7 +22,10 @@ from .serializers import (
     ParkingSerializer,
     RouteSerializer,
     ClubSerializer,
-    AreaImageSerializer, RockFaceImageSerializer, AccessSerializer)
+    AreaImageSerializer,
+    RockFaceImageSerializer,
+    AccessSerializer,
+    RouteNodeSerializer)
 
 
 class AreaViewSet(viewsets.ModelViewSet):
@@ -81,3 +88,50 @@ def new_user_view(request):
     return render(request, template_name='django_api/new_user.html', context={
         'form': form,
     })
+
+
+class RouteNodeViewSet(viewsets.ModelViewSet):
+    serializer_class = RouteNodeSerializer
+    queryset = RouteNode.objects.all()
+
+
+# TODO: Finish view.
+@transaction.atomic
+def save_route_nodes(request, pk):
+    rockface_image = get_object_or_404(RockFaceImage, pk=pk)
+    old_nodes = RouteNode.objects.filter(image=rockface_image)
+    # Validates if data is correct.
+    # Removes old route_nodes.
+    # Saves new ones.
+
+    if request.method == 'POST':
+        recieved_data = json.loads(request.body.decode('utf-8'))
+
+        if len(old_nodes) == 0:
+            print("no earlier nodes!")
+        else:
+            old_nodes.delete()
+
+        double_nodes = {}
+        for route_id in recieved_data:
+            route = Route.objects.get(pk=route_id)  # Should probably throw exception and abort atomic transaction?
+
+            for route_node in recieved_data[route_id]:
+
+                temp_id = str(route_node['left']) + str(route_node['top'])
+                if temp_id in double_nodes:
+                    node = double_nodes[temp_id]
+                else:
+                    node = RouteNode(
+                        image=rockface_image,
+                        pos_x=route_node['left'],
+                        pos_y=route_node['top'],
+                        order=route_node['order']
+                    )
+                    node.save()
+                    double_nodes[temp_id] = node
+                route.route_nodes.add(node)
+
+        return HttpResponse(status=200)
+    else:
+        return redirect("/")
