@@ -8,7 +8,9 @@ from captcha import urls as captcha_urls
 from .views import development_index, development_api_mock, reset, reset_done, reset_confirm, reset_complete
 from django_api.views import new_user_view
 
+
 urlpatterns = [
+    url(r'^admin_tools/', include('admin_tools.urls')),
     url(r'^admin/password_reset_admin/$', view=reset, name='admin_password_reset'),
     url(r'^admin/password_reset/$', view=reset, name='password_reset'),
     url(r'^admin/password_reset/done/$', view=reset_done, name='password_reset_done'),
