@@ -5,7 +5,7 @@
 /* globals $: true */
 /* globals django: false */
 /* globals fabric: false */
-
+function print(input){console.log(input)}
 if(!$) {
     $ = django.jQuery;
 }
@@ -195,13 +195,6 @@ $('document').ready(function(){
             circle.lockMovementX = false;
             circle.lockMovementY = false;
         }
-        var json = canvas.toJSON();
-        history.push([json, JSON.stringify(routes)]);
-        if (history.length > 50){
-            history.reverse().pop();
-            history.reverse();
-        }
-
     }
 
     function addPoint(x, y, force_route = false){
@@ -227,7 +220,9 @@ $('document').ready(function(){
         circle.lockMovementY = true;
         circle.on({
             'selected': markSelectedCircle,
-            'mousedown': moveSelectedCircle
+            'mousedown': moveSelectedCircle,
+            'mouseup': save_state,
+            'removed': save_state
         });
         canvas.add(circle);
         if(!force_route) {
@@ -385,13 +380,38 @@ $('document').ready(function(){
         // console.log("RenderAll()");
         canvas.renderAll();
     }
+    function save_state(){
+        history.push(to_json());
+        print(to_json());
+        if (history.length > 50){
+            history.reverse().pop();
+            history.reverse();
+        }
+    }
     function undo_action(){
         if(history.length > 0){
             canvas.clear();
-            var json = history.pop();
-            routes = JSON.parse(json[1]);
-            canvas.loadFromJSON(json[0], canvas.renderAll.bind(canvas));
+            for (var key in routes) {
+                // skip loop if the property is from prototype
+                if (!routes.hasOwnProperty(key)) continue;
+
+                routes[key] = [];
+
+            }
+            var tmp = {};
+            var json = JSON.parse(history.pop());
+            $.each(json, function (route_id, route_data) {
+                $.each(route_data, function (index, node) {
+                    if(tmp.hasOwnProperty(node.left + "_" + node.top)){
+                        routes[route_id].push(tmp[node.left + "_" + node.top]);
+                    }
+                    tmp[node.left + "_" + node.top] = addPoint(node.left, node.top, route_id);
+                });
+            });
+            markActiveCircles();
+            drawLines();
         }
+
     }
     function to_json(){
         var data = {};
@@ -492,7 +512,7 @@ $('document').ready(function(){
         init_csrf();
         get_data(rockface_id).done(function ( data ) {
             // console.log("Loaded rockface+image data.");
-            console.log(data);
+            // console.log(data);
             var old_nodes = data['old_nodes'];
             var w = data.image.image_width;
             var h = data.image.image_height;
@@ -539,7 +559,7 @@ $('document').ready(function(){
                 }
             });
             drawLines();
-            history.push([canvas.toJSON(), JSON.stringify(routes)]);
+            save_state();
         });
     }
 
