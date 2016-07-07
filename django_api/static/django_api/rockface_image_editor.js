@@ -65,6 +65,8 @@ $('document').ready(function(){
     var rockface_id = false;
     var rockfaceimage_id = false;
 
+    var history = [];
+
     function get_data(id) {
         var data_promise = $.Deferred();
         //Parallel: Rock face (then routes) & image(then nodes)
@@ -138,7 +140,7 @@ $('document').ready(function(){
         return data_promise;
     }
 
-    function insert_dom_elements(w, h, routes, route_callback, save_callback) {
+    function insert_dom_elements(w, h, routes, route_callback, save_callback, undo_callback) {
         var $canvas_element = "<canvas id=\"fabric_canvas\" width=\"" + w + "\" height=\"" + h + "\"></canvas>";
         var $route_list = $("<form>", {id: 'route-list'});
 
@@ -158,12 +160,19 @@ $('document').ready(function(){
 
         var $save_button = $("<input>", {type: 'submit', class: 'default', value: 'Spara'});
         $save_button.click(function (e) {
-            console.log("Save button clicked.");
+            // console.log("Save button clicked.");
             e.preventDefault();
             save_callback();
         });
+        var $undo_button = $("<input>", {type: 'submit', class: 'default', value: 'Ångra'});
+        $undo_button.click(function (e) {
+            // console.log("Undo button clicked.");
+            e.preventDefault();
+            undo_callback();
+        });
 
         $target_element.prepend($route_list);
+        $target_element.prepend($undo_button);
         $target_element.prepend($save_button);
         $target_element.prepend($canvas_element);
 
@@ -173,17 +182,26 @@ $('document').ready(function(){
 
 
     function onCanvasClick(options){
-        console.log("onCanvasClick()");
+        // console.log("onCanvasClick()");
         //Clicked a pre-existing point. Unmark previous + mark new.
         if(options.target != null){
-            console.log("- Pre-existing point. Unmark(old)+mark(new)");
+            // console.log("- Pre-existing point. Unmark(old)+mark(new)");
         }
 
         //Nothing clicked. New or connect point.
         else if(options.target == null){
-            console.log("- New point");
-            addPoint(options.e.offsetX, options.e.offsetY);
+            // console.log("- New point");
+            circle = addPoint(options.e.offsetX, options.e.offsetY);
+            circle.lockMovementX = false;
+            circle.lockMovementY = false;
         }
+        var json = canvas.toJSON();
+        history.push([json, JSON.stringify(routes)]);
+        if (history.length > 50){
+            history.reverse().pop();
+            history.reverse();
+        }
+
     }
 
     function addPoint(x, y, force_route = false){
@@ -192,21 +210,24 @@ $('document').ready(function(){
             alert("Välj en led först.");
             return;
         } else if(force_route){
-            console.log("Force insert point.");
+            // console.log("Force insert point.");
             offset = 0;  // If force is it the true top/left values being sent.
         }
-        console.log("addPoint()");
+        // console.log("addPoint()");
         var circle = new fabric.Circle({
             left: x - offset,
             top: y - offset,
             strokeWidth: CIRCLE_THICKNESS,
             radius: CIRCLE_RADIUS,
             fill: TRANSPARENT_COLOR,
-            stroke: CIRCLE_ACTIVE_COLOR
+            stroke: CIRCLE_INACTIVE_COLOR
         });
         circle.hasBorders = circle.hasControls = false;
+        circle.lockMovementX = true;
+        circle.lockMovementY = true;
         circle.on({
-            'selected': markSelectedCircle
+            'selected': markSelectedCircle,
+            'mousedown': moveSelectedCircle
         });
         canvas.add(circle);
         if(!force_route) {
@@ -219,9 +240,18 @@ $('document').ready(function(){
         return circle;
     }
 
+    function moveSelectedCircle(e) {
+        if(active_route == null) {
+            this.lockMovementX = true;
+            this.lockMovementY = true;
+        }
+    }
     function markSelectedCircle() {
-        console.log('markCircle()');
-
+        // console.log('markCircle()');
+        if(active_route == null){
+            alert("Välj en led först.");
+            return;
+        }
         unMarkCircle(selectedObject);
         if(typeof this.animate === "undefined"){return}
         this.animate('radius', CIRCLE_RADIUS+3, {
@@ -234,35 +264,41 @@ $('document').ready(function(){
         var current_circle = this;  //What this refers to changes in each loop...
         $.each(routes[active_route], function (index, circle) {
             if(current_circle === circle){
-                console.log("Marked circle already added to route");
+                // console.log("Marked circle already added to route");
                 in_route = true;
             }
         });
         if(!in_route){
-            console.log("Adding marked route to active route!");
+            // console.log("Adding marked route to active route!");
             routes[active_route].push(this);  //add to the active route.
+            this.lockMovementX = false;
+            this.lockMovementY = false;
             drawLines();
         }
-        console.log(routes);
+        // console.log(routes);
     }
 
     function markActiveCircles() {
-        console.log('markActiveCircles()');
+        // console.log('markActiveCircles()');
         $.each(routes, function (index, route) {
             $.each(route, function (index, circle) {
                 circle.set('stroke', CIRCLE_INACTIVE_COLOR);
+                circle.lockMovementX = true;
+                circle.lockMovementY = true;
             });
         });
         $.each(routes[active_route], function (index, circle) {
             circle.set('stroke', CIRCLE_ACTIVE_COLOR);
+            circle.lockMovementX = false;
+            circle.lockMovementY = false;
         });
         canvas.renderAll();
     }
 
     function unMarkCircle(s) {
-        console.log('unMarkCircle()');
+        // console.log('unMarkCircle()');
         if (s == null) {
-            console.log("- null");
+            // console.log("- null");
             return;
         }
         s.animate('radius', CIRCLE_RADIUS, {
@@ -279,10 +315,11 @@ $('document').ready(function(){
         selectedObject = null;
         markActiveCircles();
         drawLines();
-        console.log("Activated route: " + route);
+        // console.log("Activated route: " + route);
     }
 
     function drawLines(){
+
         function makeLine() {
             var line = new fabric.Line({
                 fill: LINE_INACTIVE_COLOR,
@@ -303,7 +340,7 @@ $('document').ready(function(){
             line.set('y2', j.top + CIRCLE_RADIUS);
         }
 
-        console.log("Draw lines!");
+        // console.log("Draw lines!");
         $.each(routes, function (route_id, route) {
 
 
@@ -331,7 +368,7 @@ $('document').ready(function(){
                     lines[route_id].push(line);
                     canvas.add(line);
                     line.sendToBack();
-                    console.log("Added line:");
+                    // console.log("Added line:");
                 } else {
                     line = lines[route_id][i-1];
                     setLineCoords(line, route[i-1], route[i]);
@@ -345,14 +382,20 @@ $('document').ready(function(){
                 }
             }
         });
-        console.log("RenderAll()");
+        // console.log("RenderAll()");
         canvas.renderAll();
     }
-
-    function save_data_cb(){
-        var url = SAVE_ROUTE_NODE_URL + rockfaceimage_id + "/";
+    function undo_action(){
+        if(history.length > 0){
+            canvas.clear();
+            var json = history.pop();
+            routes = JSON.parse(json[1]);
+            canvas.loadFromJSON(json[0], canvas.renderAll.bind(canvas));
+        }
+    }
+    function to_json(){
         var data = {};
-        //Trouble to JSON-encode whole fabricjs object... 
+        //Trouble to JSON-encode whole fabricjs object...
         $.each(routes, function (route_name, route_data) {
             if(route_data.length > 1){
                 data[route_name] = [];
@@ -367,9 +410,15 @@ $('document').ready(function(){
             }
         });
 
-        var json_data = JSON.stringify(data);
+        return JSON.stringify(data);
+
+    }
+
+    function save_data_cb(){
+        var url = SAVE_ROUTE_NODE_URL + rockfaceimage_id + "/";
+        var json_data = to_json();
         var success = function () {
-            console.log("Successfully saved data.");
+            // console.log("Successfully saved data.");
         };
         $.ajax({
             type: "POST",
@@ -380,7 +429,7 @@ $('document').ready(function(){
             dataType: "json",
             async: true
         });
-        console.log("Saving data...");
+        // console.log("Saving data...");
     }
 
     function deleteNode(){
@@ -438,12 +487,12 @@ $('document').ready(function(){
         });
     }
     function init() {
-        console.log("Fabric loaded.");
-        console.log(rockface_id);
+        // console.log("Fabric loaded.");
+        // console.log(rockface_id);
         init_csrf();
         get_data(rockface_id).done(function ( data ) {
-            console.log("Loaded rockface+image data.");
-
+            // console.log("Loaded rockface+image data.");
+            console.log(data);
             var old_nodes = data['old_nodes'];
             var w = data.image.image_width;
             var h = data.image.image_height;
@@ -452,7 +501,7 @@ $('document').ready(function(){
                 routes[route.id] = [];  //Make sure routes has an array for each route.
             });
 
-            insert_dom_elements(w, h, data.routes, activate_route_cb, save_data_cb);
+            insert_dom_elements(w, h, data.routes, activate_route_cb, save_data_cb, undo_action);
             canvas = new fabric.Canvas("fabric_canvas");
             canvas.setBackgroundImage(data.image.image, canvas.renderAll.bind(canvas), {
                 backgroundImageStretch: false
@@ -464,7 +513,7 @@ $('document').ready(function(){
             });
             $('body').keyup(function (e) {
                 if(e.keyCode === 46){  //46 = delete.
-                    console.log("delete node!");
+                    // console.log("delete node!");
                     deleteNode();
                 }
             });
@@ -490,6 +539,7 @@ $('document').ready(function(){
                 }
             });
             drawLines();
+            history.push([canvas.toJSON(), JSON.stringify(routes)]);
         });
     }
 
@@ -499,7 +549,7 @@ $('document').ready(function(){
     if(rockface_id && rockfaceimage_id){
         $.getScript('https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.2/fabric.min.js', init);
     } else {
-        console.log("No id found.");
+        // console.log("No id found.");
     }
 });
 
