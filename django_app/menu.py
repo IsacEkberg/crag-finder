@@ -25,20 +25,22 @@ class CustomMenu(Menu):
                                items.MenuItem('Lägg till område', reverse('admin:django_api_area_add')),
                                items.MenuItem('Ändra ett område', reverse('admin:django_api_area_changelist')),
                            ]),
-            items.Bookmarks(),
+        ]
+            #items.Bookmarks(),
             #items.AppList(
             #    _('Applications'),
             #    exclude=('django.contrib.*',)
             #),
-            items.AppList(
-                _('Administration'),
-                models=('django.contrib.*',)
-            )
-        ]
 
     def init_with_context(self, context):
         """
         Use this method if you need to access the request context.
         """
-
+        superuser = context['request'].user.is_superuser
+        print(superuser)
+        #if superuser:
+        #    self.children += items.AppList(
+        #        _('Administration'),
+        #        models=()
+        #    )
         return super(CustomMenu, self).init_with_context(context)
