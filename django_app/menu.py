@@ -48,7 +48,8 @@ class CustomMenu(Menu):
                 items.MenuItem(
                     'Områdesöversikt',
                     children=[
-                        items.MenuItem('Område: ' + area.name, reverse('admin:django_api_area_change', args=(area.pk,))),
+                        items.MenuItem('Område: ' + area.name, reverse('admin:django_api_area_change',
+                                                                       args=(area.pk,))),
                     ] + rockfaces
                 )
             ]
@@ -65,8 +66,5 @@ class CustomMenu(Menu):
                 _('Administration'),
                 models=()
             )]
-
-
-
 
         return super(CustomMenu, self).init_with_context(context)

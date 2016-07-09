@@ -294,3 +294,5 @@ LOGGING = {
 PAGEDOWN_SHOW_PREVIEW = True
 
 ADMIN_TOOLS_MENU = 'django_app.menu.CustomMenu'
+ADMIN_TOOLS_APP_INDEX_DASHBOARD = 'django_app.dashboard.CustomAppIndexDashboard'
+ADMIN_TOOLS_INDEX_DASHBOARD = 'django_app.dashboard.CustomIndexDashboard'
