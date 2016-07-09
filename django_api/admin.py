@@ -361,7 +361,9 @@ class AreaAdmin(VersionAdmin):
             'fields': ('name', 'short_description', 'long_description', 'road_description', )
         }),
         ('KLUBB/KLUBBAR', {
+            'classes': ('collapse',),
             'fields': ('clubs',),
+            'description': 'Här kan du ange vilken/vilka klätterklubbar som ansvarar för accessfrågor för området.',
         }),
     )
 

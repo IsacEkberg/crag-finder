@@ -129,10 +129,32 @@ class Area(models.Model):
     """
     A climbing area. Contains several crags. A parking or more.
     """
-    name = models.CharField(verbose_name="namn", max_length=150)
-    short_description = models.CharField(verbose_name="kort beskrivning", max_length=300, null=True, blank=False)
-    long_description = MarkDownTextField(verbose_name="lång beskrivning", max_length=4000, null=True, blank=False)
-    road_description = models.CharField(verbose_name="väg beskrivning", max_length=4000, null=True, blank=False)
+    name = models.CharField(verbose_name="namn",
+                            max_length=150)
+    short_description = models.CharField(verbose_name="kortare beskrivning",
+                                         help_text="Här kan du skriva en kortare beskrivning av området,"
+                                                   " max 300 tecken. Denna text är den beskrivning som visas över"
+                                                   "i föraren.",
+                                         max_length=300,
+                                         null=True,
+                                         blank=False)
+    long_description = MarkDownTextField(verbose_name="längre beskrivning",
+                                         help_text="Här finns utrymme att skriva en längre beskrivning av området."
+                                                   "Formuläret stödjer "
+                                                   "<a href=\"https://guides.github.com/features/mastering-markdown/\">"
+                                                   "markdown</a> formatering. Denna text visas på översiktssidan om ett"
+                                                   "område i föraren.",
+                                         max_length=4000,
+                                         null=True,
+                                         blank=False)
+
+    road_description = models.CharField(verbose_name="vägbeskrivning",
+                                        help_text="Här kan en ytterligare vägbeskrivning ges om det är önskvärt. "
+                                                  "(Området kommer att i ett senare steg att markeras på en karta). "
+                                                  "Max 4000 tecken.",
+                                        max_length=4000,
+                                        null=True,
+                                        blank=False)
     clubs = models.ManyToManyField('Club', verbose_name="ansvarig klubb/klubbar", blank=False)
     replacing = models.ForeignKey(
         'self',
