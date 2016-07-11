@@ -122,7 +122,9 @@ class RouteNode(models.Model):
     image = models.ForeignKey(RockFaceImage)
     pos_x = models.IntegerField()
     pos_y = models.IntegerField()
-    order = models.PositiveIntegerField()
+
+    class Meta:
+        ordering = ["routenoderelation__order",]
 
 
 class Area(models.Model):
@@ -221,6 +223,15 @@ class Parking(models.Model):
         verbose_name_plural = 'parkeringar'
 
 
+class RouteNodeRelation(models.Model):
+    node = models.ForeignKey("RouteNode")
+    route = models.ForeignKey("Route")
+    order = models.PositiveIntegerField()
+
+    class Meta:
+        ordering = ["order",]
+
+
 class Route(models.Model):
     """
     A route belongs to a rockface.
@@ -235,7 +246,7 @@ class Route(models.Model):
     image = models.ForeignKey(RockFaceImage, verbose_name="bild", blank=True, null=True)
     nr_of_bolts = models.PositiveIntegerField(verbose_name="antal bultar", blank=True, null=True)
 
-    route_nodes = models.ManyToManyField(RouteNode)
+    route_nodes = models.ManyToManyField(RouteNode, through=RouteNodeRelation)
 
     replacing = models.ForeignKey(
         'self',
@@ -417,6 +428,9 @@ class Route(models.Model):
     @property
     def type_hr(self):
         return [item for item in Route.TYPE_CHOICES if item[0] == self.type][0][1]
+
+    def add_route_node(self, node, order):
+        RouteNodeRelation.objects.create(node_id=node.pk, route_id=self.pk, order=order)
 
 
 class Club(models.Model):

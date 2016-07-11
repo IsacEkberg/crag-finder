@@ -15,7 +15,7 @@ $('document').ready(function(){
 
     //Fabric canvas
     var canvas = null;
-
+    var ratio = 1;
     //Fabric constants
     var CIRCLE_RADIUS = 12;
     var CIRCLE_THICKNESS = 5;
@@ -23,10 +23,9 @@ $('document').ready(function(){
     var CIRCLE_SELECTED_COLOR ='#00FF0B';
     var CIRCLE_INACTIVE_COLOR = '#666666';
 
-    var LINE_THICKNESS = '5';
+    var LINE_THICKNESS = 2;
     var LINE_ACTIVE_COLOR = '#00A109';
     var LINE_INACTIVE_COLOR = '#666666';
-
 
 
     var TRANSPARENT_COLOR = 'rgba(0,0,0,0)';
@@ -160,13 +159,11 @@ $('document').ready(function(){
 
         var $save_button = $("<input>", {type: 'submit', class: 'default', value: 'Spara'});
         $save_button.click(function (e) {
-            // console.log("Save button clicked.");
             e.preventDefault();
             save_callback();
         });
         var $undo_button = $("<input>", {type: 'submit', class: 'default', value: 'Ångra'});
         $undo_button.click(function (e) {
-            // console.log("Undo button clicked.");
             e.preventDefault();
             undo_callback();
         });
@@ -182,34 +179,46 @@ $('document').ready(function(){
 
 
     function onCanvasClick(options){
-        // console.log("onCanvasClick()");
         //Clicked a pre-existing point. Unmark previous + mark new.
         if(options.target != null){
-            // console.log("- Pre-existing point. Unmark(old)+mark(new)");
+            // Pre-existing point.
         }
 
         //Nothing clicked. New or connect point.
         else if(options.target == null){
-            // console.log("- New point");
-            circle = addPoint(options.e.offsetX, options.e.offsetY);
+            // New point.
+            circle = addPoint(options.e.offsetX/ratio, options.e.offsetY/ratio);
             circle.lockMovementX = false;
             circle.lockMovementY = false;
         }
     }
-
+    function message(msg){
+        var $close_button = $("<input>", {
+            type: 'submit',
+            class: 'default',
+            value: 'X',
+            style: 'background-color: darkred; float: right'
+        });
+        $close_button.click(function (e) {
+            e.preventDefault();
+            $(this).parent().remove();
+        });
+        var $ptag = $("<p>", {style: 'height: 40px', class: 'errornote'}).append($close_button);
+        $("#content-main").prepend($ptag.prepend(msg));
+    }
     function addPoint(x, y, force_route = false){
         var offset = CIRCLE_RADIUS;
         if(active_route == null && force_route === false) {
-            alert("Välj en led först.");
+            message("Välj en led först.");
+
             return;
         } else if(force_route){
-            // console.log("Force insert point.");
             offset = 0;  // If force is it the true top/left values being sent.
         }
-        // console.log("addPoint()");
+        // Add Circle
         var circle = new fabric.Circle({
-            left: x - offset,
-            top: y - offset,
+            left: ratio * x - offset,
+            top: ratio * y - offset,
             strokeWidth: CIRCLE_THICKNESS,
             radius: CIRCLE_RADIUS,
             fill: TRANSPARENT_COLOR,
@@ -229,8 +238,6 @@ $('document').ready(function(){
             routes[active_route].push(circle);
             canvas.setActiveObject(circle);
             drawLines();
-        } else {
-            routes[force_route].push(circle);
         }
         return circle;
     }
@@ -242,9 +249,8 @@ $('document').ready(function(){
         }
     }
     function markSelectedCircle() {
-        // console.log('markCircle()');
         if(active_route == null){
-            alert("Välj en led först.");
+            message("Välj en led först.");
             return;
         }
         unMarkCircle(selectedObject);
@@ -259,22 +265,20 @@ $('document').ready(function(){
         var current_circle = this;  //What this refers to changes in each loop...
         $.each(routes[active_route], function (index, circle) {
             if(current_circle === circle){
-                // console.log("Marked circle already added to route");
+                // Marked circle already added to route
                 in_route = true;
             }
         });
         if(!in_route){
-            // console.log("Adding marked route to active route!");
+            // Adding marked route to active route!
             routes[active_route].push(this);  //add to the active route.
             this.lockMovementX = false;
             this.lockMovementY = false;
             drawLines();
         }
-        // console.log(routes);
     }
 
     function markActiveCircles() {
-        // console.log('markActiveCircles()');
         $.each(routes, function (index, route) {
             $.each(route, function (index, circle) {
                 circle.set('stroke', CIRCLE_INACTIVE_COLOR);
@@ -291,9 +295,7 @@ $('document').ready(function(){
     }
 
     function unMarkCircle(s) {
-        // console.log('unMarkCircle()');
         if (s == null) {
-            // console.log("- null");
             return;
         }
         s.animate('radius', CIRCLE_RADIUS, {
@@ -310,7 +312,6 @@ $('document').ready(function(){
         selectedObject = null;
         markActiveCircles();
         drawLines();
-        // console.log("Activated route: " + route);
     }
 
     function drawLines(){
@@ -324,7 +325,7 @@ $('document').ready(function(){
             });
             line.set('fill', LINE_INACTIVE_COLOR);
             line.set('stroke', LINE_INACTIVE_COLOR);
-            line.set('strokeWidth', 5);
+            line.set('strokeWidth', LINE_THICKNESS);
             line.set('selectable', false);
             return line;
         }
@@ -335,7 +336,7 @@ $('document').ready(function(){
             line.set('y2', j.top + CIRCLE_RADIUS);
         }
 
-        // console.log("Draw lines!");
+        // Draw lines!
         $.each(routes, function (route_id, route) {
 
 
@@ -345,8 +346,7 @@ $('document').ready(function(){
             if(route.length <= 1) {
                 return true;  //Breaks loop.
             }
-            var line_num = lines[route_id].length;
-            var route_num = routes[route_id].length;
+
             if(lines[route_id].length >= routes[route_id].length-1){
                 //Delete has happened. Remove it all.
                 $.each(lines[route_id], function (index, line) {
@@ -363,7 +363,6 @@ $('document').ready(function(){
                     lines[route_id].push(line);
                     canvas.add(line);
                     line.sendToBack();
-                    // console.log("Added line:");
                 } else {
                     line = lines[route_id][i-1];
                     setLineCoords(line, route[i-1], route[i]);
@@ -377,12 +376,10 @@ $('document').ready(function(){
                 }
             }
         });
-        // console.log("RenderAll()");
         canvas.renderAll();
     }
     function save_state(){
         history.push(to_json());
-        print(to_json());
         if (history.length > 50){
             history.reverse().pop();
             history.reverse();
@@ -402,10 +399,11 @@ $('document').ready(function(){
             var json = JSON.parse(history.pop());
             $.each(json, function (route_id, route_data) {
                 $.each(route_data, function (index, node) {
+                    tmp[node.left + "_" + node.top] = addPoint(node.left, node.top, route_id);
                     if(tmp.hasOwnProperty(node.left + "_" + node.top)){
                         routes[route_id].push(tmp[node.left + "_" + node.top]);
                     }
-                    tmp[node.left + "_" + node.top] = addPoint(node.left, node.top, route_id);
+
                 });
             });
             markActiveCircles();
@@ -421,8 +419,8 @@ $('document').ready(function(){
                 data[route_name] = [];
                 $.each(route_data, function (index, circle) {
                     var tmp_obj = {
-                        top: circle.top,
-                        left: circle.left,
+                        top: circle.top/ratio,
+                        left: circle.left/ratio,
                         order: index
                     };
                     data[route_name].push(tmp_obj);
@@ -437,9 +435,7 @@ $('document').ready(function(){
     function save_data_cb(){
         var url = SAVE_ROUTE_NODE_URL + rockfaceimage_id + "/";
         var json_data = to_json();
-        var success = function () {
-            // console.log("Successfully saved data.");
-        };
+        var success = function () {};
         $.ajax({
             type: "POST",
             url: url,
@@ -449,13 +445,11 @@ $('document').ready(function(){
             dataType: "json",
             async: true
         });
-        // console.log("Saving data...");
     }
 
     function deleteNode(){
         if(selectedObject == null){return;}
 
-        var to_delete = [];
         var new_arrays = {};
 
         //Search for references and filter away selected node.
@@ -507,24 +501,40 @@ $('document').ready(function(){
         });
     }
     function init() {
-        // console.log("Fabric loaded.");
-        // console.log(rockface_id);
         init_csrf();
         get_data(rockface_id).done(function ( data ) {
-            // console.log("Loaded rockface+image data.");
-            // console.log(data);
             var old_nodes = data['old_nodes'];
             var w = data.image.image_width;
             var h = data.image.image_height;
+            var screen_width = $("#content-main").width();
+            var screen_height = $(window).height();
 
-            $.each(data.routes, function (index, route) {
-                routes[route.id] = [];  //Make sure routes has an array for each route.
-            });
+            var bigger_than_screen = false;
+            var width_ratio;
+            var height_ratio;
+            if (screen_width/w < 1){
+                bigger_than_screen = true;
+                width_ratio = screen_width/w;
+            }
+            if (screen_height/h < 1){
+                bigger_than_screen = true;
+                height_ratio = screen_height/h;
+            }
+            if (bigger_than_screen){
+                ratio = Math.min(width_ratio, height_ratio);
+                CIRCLE_RADIUS = Math.max(ratio * 12, 4);
+                CIRCLE_THICKNESS = Math.max(ratio * 5, 2);
+                LINE_THICKNESS = Math.max(ratio * 5, 2);
+                h = ratio * h;
+                w = ratio * w;
+            }
 
             insert_dom_elements(w, h, data.routes, activate_route_cb, save_data_cb, undo_action);
             canvas = new fabric.Canvas("fabric_canvas");
             canvas.setBackgroundImage(data.image.image, canvas.renderAll.bind(canvas), {
-                backgroundImageStretch: false
+                backgroundImageStretch: false,
+                scaleY: ratio,
+                scaleX: ratio
             });
             canvas.selection = false; //Disables box selection
             canvas.on({
@@ -533,30 +543,20 @@ $('document').ready(function(){
             });
             $('body').keyup(function (e) {
                 if(e.keyCode === 46){  //46 = delete.
-                    // console.log("delete node!");
                     deleteNode();
                 }
             });
-            //Add old nodes:
-            function compare_nodes(a,b){
-                if (a.order < b.order) {
-                    return -1;
-                } else if (a.order > b.order){
-                    return 1;
-                } else {
-                    return 0;
-                }
 
-            }
-            old_nodes.sort(compare_nodes);
+            // Add old nodes:
+            var nodes = {};
             $.each(old_nodes, function (index, node) {
-                var circle = addPoint(node.pos_x, node.pos_y, node.route_set[0]);
-                if(node.route_set.length > 1) {
-                    for (var i = 1; i < node.route_set.length; i++) {
-                        var r_id = node.route_set[i];
-                        routes[r_id].push(circle);
-                    }
-                }
+                nodes[node.id] = addPoint(node.pos_x, node.pos_y, true);
+            });
+            $.each(data.routes, function (route_index, route) {
+                routes[route.id] = [];  //Make sure routes has an array for each route.
+                $.each(route.route_nodes, function (index, node) {
+                    routes[route.id].push(nodes[node]);
+                });
             });
             drawLines();
             save_state();
@@ -567,10 +567,14 @@ $('document').ready(function(){
     rockface_id = $("div.field-rockface_key").children("div").children("p").text();
     rockfaceimage_id = $("div.field-id").children("div").children("p").text();
     if(rockface_id && rockfaceimage_id){
-        $.getScript('https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.2/fabric.min.js', init);
-    } else {
-        // console.log("No id found.");
-    }
+        $.when(
+            $.getScript('https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.2/fabric.min.js'),
+            $.Deferred(function( deferred ){
+                $( deferred.resolve );
+            })
+        ).done(init);
+
+    } else { /* No id found. */ }
 });
 
 

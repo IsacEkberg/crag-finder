@@ -65,7 +65,8 @@ class RouteSerializer(serializers.ModelSerializer):
             'length',
             'nr_of_bolts',
             'route_nr',
-            'image'
+            'image',
+            "route_nodes",
         )
 
 
@@ -110,5 +111,5 @@ class RouteNodeSerializer(serializers.ModelSerializer):
                   "image",
                   "pos_x",
                   "pos_y",
-                  "order",
+                  "routenoderelation_set",
                   "route_set")
