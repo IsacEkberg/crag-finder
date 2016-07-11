@@ -207,6 +207,8 @@ class RockFaceAdmin(VersionAdmin):
         }),
         ('Karta', {
             'fields': ('geo_data',),
+            'description': 'Här kan du mata in var denna sektor sträcker sig. Vänsterklicka för att '
+                           'skapa punkter. Högerklicka för att ta bort en punkt.'
         }),
     )
     form = RockFaceAdminForm
@@ -355,10 +357,12 @@ class AreaAdmin(VersionAdmin):
 
     image_tag.short_description = 'Uppladdad bild'
     image_tag.allow_tags = True
-    readonly_fields = ('image_tag',)
+    readonly_fields = ('image_tag', 'faces')
     fieldsets = (
         (None, {
-            'fields': ('name', 'short_description', 'long_description', 'road_description', )
+            'fields': ('name', 'faces', 'short_description', 'long_description', 'road_description', ),
+            'description': 'Ändra i fälten och tryck sedan spara för att göra ändringar. Detta är översikts'
+                           'sidan för området, det måste matas in åtminstone en sektor där leder kan märkas ut.'
         }),
         ('KLUBB/KLUBBAR', {
             'classes': ('collapse',),

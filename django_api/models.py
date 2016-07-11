@@ -46,7 +46,7 @@ class AreaImage(models.Model):
         upload_to=_image_file_path,
         null=False,
         blank=False,
-        verbose_name="bild", )
+        verbose_name="bild")
 
     area = models.ForeignKey('Area', related_name="image")
 
@@ -191,7 +191,10 @@ class RockFace(models.Model):
     A rockface holds a set of routes. One area can have several Rockfaces.
     """
     name = models.CharField(verbose_name="namn", max_length=150)
-    area = models.ForeignKey(Area, verbose_name="område", related_name="rockfaces")
+    area = models.ForeignKey(Area,
+                             verbose_name="område",
+                             related_name="rockfaces",
+                             help_text="Område som denna sektor tillhör.")
     geo_data = models.CharField(verbose_name="plats för klippan",
                                 max_length=3000,
                                 blank=False,
@@ -205,8 +208,16 @@ class RockFace(models.Model):
                                     ]
                                 )
 
-    short_description = models.CharField(verbose_name="kort beskrivning", max_length=300, null=True, blank=True)
-    long_description = models.CharField(verbose_name="lång beskrivning", max_length=4000, null=True, blank=True)
+    short_description = models.CharField(verbose_name="kort beskrivning",
+                                         max_length=300,
+                                         null=True,
+                                         blank=True,
+                                         help_text="En kort beskrinvning (300 tecken) av sektorn.")
+    long_description = models.CharField(verbose_name="lång beskrivning",
+                                        max_length=4000,
+                                        null=True,
+                                        blank=True,
+                                        help_text="En längre beskrivning av området på max 4000 tecken.")
 
     replacing = models.ForeignKey(
         'self',
