@@ -19,12 +19,12 @@ $('document').ready(function(){
     //Fabric constants
     var CIRCLE_RADIUS = 12;
     var CIRCLE_THICKNESS = 5;
-    var CIRCLE_ACTIVE_COLOR = '#006607';
-    var CIRCLE_SELECTED_COLOR ='#00FF0B';
-    var CIRCLE_INACTIVE_COLOR = '#666666';
+    var CIRCLE_ACTIVE_COLOR = '#ccf55d';
+    var CIRCLE_SELECTED_COLOR ='#a2f55d';
+    var CIRCLE_INACTIVE_COLOR = '#f3a200';
 
     var LINE_THICKNESS = 2;
-    var LINE_ACTIVE_COLOR = '#00A109';
+    var LINE_ACTIVE_COLOR = '#a2f55d';
     var LINE_INACTIVE_COLOR = '#666666';
 
 
@@ -112,7 +112,7 @@ $('document').ready(function(){
 
         function get_image_data(rockface_id){
             var image_promise = $.Deferred();
-            $.getJSON('/api/v1/rockfaceimages/?rockface=' + id).
+            $.getJSON('/api/v1/rockfaceimages/' + rockfaceimage_id).
             done(function (rockfaceimage_data) {
                 image_promise.resolve(rockfaceimage_data);
             });
@@ -130,7 +130,7 @@ $('document').ready(function(){
             data_promise.resolve({
                 rockface: rockface_data.rockface,
                 routes: rockface_data.routes,
-                image: image_data[0],
+                image: image_data,
                 old_nodes: old_nodes
             });
         });
@@ -255,7 +255,7 @@ $('document').ready(function(){
         }
         unMarkCircle(selectedObject);
         if(typeof this.animate === "undefined"){return}
-        this.animate('radius', CIRCLE_RADIUS+3, {
+        this.animate('radius', CIRCLE_RADIUS+2, {
             onChange: canvas.renderAll.bind(canvas),
             duration: 200
         });
@@ -522,7 +522,7 @@ $('document').ready(function(){
             }
             if (bigger_than_screen){
                 ratio = Math.min(width_ratio, height_ratio);
-                CIRCLE_RADIUS = Math.max(ratio * 12, 4);
+                CIRCLE_RADIUS = Math.max(ratio * 12, 5);
                 CIRCLE_THICKNESS = Math.max(ratio * 5, 2);
                 LINE_THICKNESS = Math.max(ratio * 5, 2);
                 h = ratio * h;
@@ -544,6 +544,9 @@ $('document').ready(function(){
             $('body').keyup(function (e) {
                 if(e.keyCode === 46){  //46 = delete.
                     deleteNode();
+                }
+                if (e.keyCode == 90 && e.ctrlKey) {  //90 = z.
+                    undo_action();
                 }
             });
 

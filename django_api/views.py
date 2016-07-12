@@ -93,7 +93,8 @@ def new_user_view(request):
 class RouteNodeViewSet(viewsets.ModelViewSet):
     serializer_class = RouteNodeSerializer
     queryset = RouteNode.objects.all()
-
+    filter_fields = ('id',
+                     "image")
 
 # TODO: Finish view.
 @transaction.atomic
