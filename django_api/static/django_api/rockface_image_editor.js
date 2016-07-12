@@ -5,18 +5,17 @@
 /* globals $: true */
 /* globals django: false */
 /* globals fabric: false */
-function print(input){console.log(input)}
 if(!$) {
     $ = django.jQuery;
 }
 $('document').ready(function(){
-    //Global variables:
-    var SAVE_ROUTE_NODE_URL = '/api/v1/routenodes/save/';
 
-    //Fabric canvas
+    // ===== Global variables: =====
+    var SAVE_ROUTE_NODE_URL = '/api/v1/routenodes/save/';
+    // Fabric canvas
     var canvas = null;
     var ratio = 1;
-    //Fabric constants
+    // Fabric constants
     var CIRCLE_RADIUS = 12;
     var CIRCLE_THICKNESS = 5;
     var CIRCLE_ACTIVE_COLOR = '#ccf55d';
@@ -27,12 +26,21 @@ $('document').ready(function(){
     var LINE_ACTIVE_COLOR = '#a2f55d';
     var LINE_INACTIVE_COLOR = '#666666';
 
-
     var TRANSPARENT_COLOR = 'rgba(0,0,0,0)';
 
-    //Routes, nodes, client side variables.
-    var selectedObject = null;  //Selected node.
-    var routes = {};  //Holds properties of arrays (name=route_id). Circles are in array. Element 0 is first
+    // Routes, nodes, client side variables.
+    var selectedObject = null;  // Selected node.
+    var active_route = null; // The selected route
+
+    //Django ID of image.
+    var rockface_id = $("div.field-rockface_key").children("div").children("p").text();
+    var rockfaceimage_id = $("div.field-id").children("div").children("p").text();
+
+    var history = [];
+    var redo_history = [];
+    var routes = {};  // Holds properties of arrays (name=route_id). Circles are in array. Element 0 is first
+    var lines = {}; // Holds the drawn lines between route nodes.
+
     /*
      EXAMPLE:
 
@@ -44,11 +52,6 @@ $('document').ready(function(){
 
      3 routes, route 1 & 2 share start. route 2 & 3 share end anchor.
      circle 0 & 6 are starting nodes.
-     */
-
-    var lines = {}; //Holds the drawn lines between route nodes.
-    /*
-     EXAMPLE:
 
      lines = {
      1: [line_0_1, line_1_2],
@@ -58,43 +61,61 @@ $('document').ready(function(){
      Based on routes example above. line_x_y refers to the line between node x and y.
      lines property (1-3 in example) are Django route IDs, same as in routes.
      */
-    var active_route = null; //The selected route
 
-    //Django ID of image.
-    var rockface_id = false;
-    var rockfaceimage_id = false;
+    // ===== Helper functions =====
+    function print(input){console.log(input);}
 
-    var history = [];
-
-    function get_data(id) {
+    function message(msg){
+        /**
+         * Display a message on the top of the page
+         * @type {HTMLElement}
+         */
+        var $close_button = $("<input>", {
+            type: 'submit',
+            class: 'default',
+            value: 'X',
+            style: 'background-color: darkred; float: right'
+        });
+        $close_button.click(function (e) {
+            e.preventDefault();
+            $(this).parent().remove();
+        });
+        var $ptag = $("<p>", {style: 'height: 40px', class: 'errornote'}).append($close_button);
+        $("#content-main").prepend($ptag.prepend(msg));
+    }
+    // ===== Data comunication =====
+    function get_data() {
+        /**
+         * Get the data from the API
+         * Returns an object with the following properties:
+         *      rockface: A rockface object
+         *      routes: A object with the routes as key and the route as value.
+         *      image: image_data
+         *      old_nodes: a list of koordinate objects for mapping the route to the image.
+         */
         var data_promise = $.Deferred();
         //Parallel: Rock face (then routes) & image(then nodes)
 
         function get_routes_data(routes) {
             var route_promise = $.Deferred();
             var route_data = {}; //Holds the data when finished.
-            var old_nodes = null;
             function get_route_data(route){ //Get a single route.
                 return $.getJSON('/api/v1/routes/' + route).done(function (data) {
                     route_data[route] = data;
                 });
             }
 
-
             var promise_array = [];
             $.each( routes, function (index, route) {
                 promise_array.push(get_route_data(route));
             });
 
-
             //When all promises in the promise_array are resolved. Resolve and return data.
-
             $.when.apply($, promise_array).done(function () {route_promise.resolve(route_data);});
-
             return route_promise;
         }
 
-        function get_rockface_data(rockface_id){
+        function get_rockface_data(){
             var rockface_promise = $.Deferred();
             var rockface_data = null;
             $.getJSON('/api/v1/rockfaces/' + rockface_id)
@@ -110,7 +131,7 @@ $('document').ready(function(){
             return rockface_promise;
         }
 
-        function get_image_data(rockface_id){
+        function get_image_data(){
             var image_promise = $.Deferred();
             $.getJSON('/api/v1/rockfaceimages/' + rockfaceimage_id).
             done(function (rockfaceimage_data) {
@@ -126,7 +147,7 @@ $('document').ready(function(){
             return old_node_promise;
         }
 
-        $.when(get_rockface_data(id), get_image_data(id), get_old_nodes()).done(function (rockface_data, image_data, old_nodes) {
+        $.when(get_rockface_data(), get_image_data(), get_old_nodes()).done(function (rockface_data, image_data, old_nodes) {
             data_promise.resolve({
                 rockface: rockface_data.rockface,
                 routes: rockface_data.routes,
@@ -135,11 +156,66 @@ $('document').ready(function(){
             });
         });
 
-
         return data_promise;
     }
 
-    function insert_dom_elements(w, h, routes, route_callback, save_callback, undo_callback) {
+    function save_data_cb(){
+        /**
+         * Save the dots in the database
+         * @type {string}
+         */
+        var url = SAVE_ROUTE_NODE_URL + rockfaceimage_id + "/";
+        var json_data = to_json();
+        var success = function () {};
+        $.ajax({
+            type: "POST",
+            url: url,
+            contentType:'application/json',
+            data: json_data,
+            success: success,
+            dataType: "json",
+            async: true
+        });
+    }
+
+    function init_csrf() {
+        /**
+         * Get the CSRF Cookie to send requests
+         * @param name
+         * @returns {*}
+         */
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie != '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = $.trim(cookies[i]);
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        var csrftoken = getCookie('csrftoken');
+
+        function csrfSafeMethod(method) {
+            // these HTTP methods do not require CSRF protection
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+
+        $.ajaxSetup({
+            beforeSend: function (xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+    }
+
+    function insert_dom_elements(w, h, routes, route_callback, save_callback, undo_callback, redo_callback) {
         var $canvas_element = "<canvas id=\"fabric_canvas\" width=\"" + w + "\" height=\"" + h + "\"></canvas>";
         var $route_list = $("<form>", {id: 'route-list'});
 
@@ -167,15 +243,18 @@ $('document').ready(function(){
             e.preventDefault();
             undo_callback();
         });
+        var $redo_button = $("<input>", {type: 'submit', class: 'default', value: 'Gör om'});
+        $redo_button.click(function (e) {
+            e.preventDefault();
+            redo_callback();
+        });
 
         $target_element.prepend($route_list);
         $target_element.prepend($undo_button);
+        $target_element.prepend($redo_button);
         $target_element.prepend($save_button);
         $target_element.prepend($canvas_element);
-
-
     }
-
 
 
     function onCanvasClick(options){
@@ -187,25 +266,12 @@ $('document').ready(function(){
         //Nothing clicked. New or connect point.
         else if(options.target == null){
             // New point.
-            circle = addPoint(options.e.offsetX/ratio, options.e.offsetY/ratio);
+            var circle = addPoint(options.e.offsetX/ratio, options.e.offsetY/ratio);
             circle.lockMovementX = false;
             circle.lockMovementY = false;
         }
     }
-    function message(msg){
-        var $close_button = $("<input>", {
-            type: 'submit',
-            class: 'default',
-            value: 'X',
-            style: 'background-color: darkred; float: right'
-        });
-        $close_button.click(function (e) {
-            e.preventDefault();
-            $(this).parent().remove();
-        });
-        var $ptag = $("<p>", {style: 'height: 40px', class: 'errornote'}).append($close_button);
-        $("#content-main").prepend($ptag.prepend(msg));
-    }
+
     function addPoint(x, y, force_route = false){
         var offset = CIRCLE_RADIUS;
         if(active_route == null && force_route === false) {
@@ -231,8 +297,13 @@ $('document').ready(function(){
             'selected': markSelectedCircle,
             'mousedown': moveSelectedCircle,
             'mouseup': save_state,
-            'removed': save_state
+            'removed': save_state,
+            'mouseover': display_info
         });
+        if(!circle.hasOwnProperty('routes')){
+            circle['routes'] = [];
+        }
+        circle.routes.push(active_route);
         canvas.add(circle);
         if(!force_route) {
             routes[active_route].push(circle);
@@ -240,6 +311,10 @@ $('document').ready(function(){
             drawLines();
         }
         return circle;
+    }
+
+    function display_info (e){
+        print(this);
     }
 
     function moveSelectedCircle(e) {
@@ -254,7 +329,7 @@ $('document').ready(function(){
             return;
         }
         unMarkCircle(selectedObject);
-        if(typeof this.animate === "undefined"){return}
+        if(typeof this.animate === "undefined"){return;}
         this.animate('radius', CIRCLE_RADIUS+2, {
             onChange: canvas.renderAll.bind(canvas),
             duration: 200
@@ -378,25 +453,32 @@ $('document').ready(function(){
         });
         canvas.renderAll();
     }
+
     function save_state(){
         history.push(to_json());
-        if (history.length > 50){
+        if (history.length > 100){
             history.reverse().pop();
             history.reverse();
         }
+        redo_history = [];
     }
-    function undo_action(){
-        if(history.length > 0){
+
+    function _internal_undo_redo_action(from, to) {
+        if(from.length > 0){
             canvas.clear();
             for (var key in routes) {
                 // skip loop if the property is from prototype
                 if (!routes.hasOwnProperty(key)) continue;
-
                 routes[key] = [];
-
+            }
+            for (var key in lines) {
+                // skip loop if the property is from prototype
+                if (!routes.hasOwnProperty(key)) continue;
+                lines[key] = [];
             }
             var tmp = {};
-            var json = JSON.parse(history.pop());
+            var json = JSON.parse(from.pop());
+            to.push(JSON.stringify(json));
             $.each(json, function (route_id, route_data) {
                 $.each(route_data, function (index, node) {
                     tmp[node.left + "_" + node.top] = addPoint(node.left, node.top, route_id);
@@ -409,8 +491,15 @@ $('document').ready(function(){
             markActiveCircles();
             drawLines();
         }
-
     }
+
+    function undo_action() {
+        _internal_undo_redo_action(history, redo_history);
+    }
+    function redo_action(){
+        _internal_undo_redo_action(redo_history, history);
+    }
+
     function to_json(){
         var data = {};
         //Trouble to JSON-encode whole fabricjs object...
@@ -427,25 +516,10 @@ $('document').ready(function(){
                 });
             }
         });
-
         return JSON.stringify(data);
-
     }
 
-    function save_data_cb(){
-        var url = SAVE_ROUTE_NODE_URL + rockfaceimage_id + "/";
-        var json_data = to_json();
-        var success = function () {};
-        $.ajax({
-            type: "POST",
-            url: url,
-            contentType:'application/json',
-            data: json_data,
-            success: success,
-            dataType: "json",
-            async: true
-        });
-    }
+
 
     function deleteNode(){
         if(selectedObject == null){return;}
@@ -469,40 +543,10 @@ $('document').ready(function(){
 
     }
 
-    function init_csrf() {
-        function getCookie(name) {
-            var cookieValue = null;
-            if (document.cookie && document.cookie != '') {
-                var cookies = document.cookie.split(';');
-                for (var i = 0; i < cookies.length; i++) {
-                    var cookie = $.trim(cookies[i]);
-                    // Does this cookie string begin with the name we want?
-                    if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-        var csrftoken = getCookie('csrftoken');
 
-        function csrfSafeMethod(method) {
-            // these HTTP methods do not require CSRF protection
-            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-        }
-
-        $.ajaxSetup({
-            beforeSend: function (xhr, settings) {
-                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                }
-            }
-        });
-    }
     function init() {
         init_csrf();
-        get_data(rockface_id).done(function ( data ) {
+        get_data().done(function ( data ) {
             var old_nodes = data['old_nodes'];
             var w = data.image.image_width;
             var h = data.image.image_height;
@@ -529,7 +573,7 @@ $('document').ready(function(){
                 w = ratio * w;
             }
 
-            insert_dom_elements(w, h, data.routes, activate_route_cb, save_data_cb, undo_action);
+            insert_dom_elements(w, h, data.routes, activate_route_cb, save_data_cb, undo_action, redo_action);
             canvas = new fabric.Canvas("fabric_canvas");
             canvas.setBackgroundImage(data.image.image, canvas.renderAll.bind(canvas), {
                 backgroundImageStretch: false,
@@ -544,8 +588,9 @@ $('document').ready(function(){
             $('body').keyup(function (e) {
                 if(e.keyCode === 46){  //46 = delete.
                     deleteNode();
-                }
-                if (e.keyCode == 90 && e.ctrlKey) {  //90 = z.
+                } else if ((e.keyCode == 89 && e.ctrlKey)||(e.keyCode == 90 && e.ctrlKey && e.shiftKey)) {  //90 = z.
+                    redo_action();
+                } else if (e.keyCode == 90 && e.ctrlKey) {  //90 = z.
                     undo_action();
                 }
             });
@@ -567,8 +612,6 @@ $('document').ready(function(){
     }
 
 //Start.
-    rockface_id = $("div.field-rockface_key").children("div").children("p").text();
-    rockfaceimage_id = $("div.field-id").children("div").children("p").text();
     if(rockface_id && rockfaceimage_id){
         $.when(
             $.getScript('https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.2/fabric.min.js'),
@@ -576,7 +619,6 @@ $('document').ready(function(){
                 $( deferred.resolve );
             })
         ).done(init);
-
     } else { /* No id found. */ }
 });
 
