@@ -2,7 +2,7 @@ import os
 
 from django.core.validators import RegexValidator
 from django.utils import timezone
-from pagedown.widgets import AdminPagedownWidget
+from pagedown.widgets import AdminPagedownWidget, PagedownWidget
 from reversion import revisions as reversion
 from django.db import models
 from django.contrib.auth.models import User
@@ -34,11 +34,11 @@ STATUSES = (
 
 
 class MarkDownTextField(models.TextField):
-    widget = AdminPagedownWidget
+    widget = AdminPagedownWidget()
 
 
 class MarkDownCharField(models.CharField):
-    widget = AdminPagedownWidget
+    widget = AdminPagedownWidget()
 
 
 class AreaImage(models.Model):
@@ -46,7 +46,7 @@ class AreaImage(models.Model):
         upload_to=_image_file_path,
         null=False,
         blank=False,
-        verbose_name="bild", )
+        verbose_name="bild")
 
     area = models.ForeignKey('Area', related_name="image")
 
@@ -131,10 +131,32 @@ class Area(models.Model):
     """
     A climbing area. Contains several crags. A parking or more.
     """
-    name = models.CharField(verbose_name="namn", max_length=150)
-    short_description = models.CharField(verbose_name="kort beskrivning", max_length=300, null=True, blank=False)
-    long_description = MarkDownTextField(verbose_name="lång beskrivning", max_length=4000, null=True, blank=False)
-    road_description = models.CharField(verbose_name="väg beskrivning", max_length=4000, null=True, blank=False)
+    name = models.CharField(verbose_name="namn",
+                            max_length=150)
+    short_description = models.CharField(verbose_name="kortare beskrivning",
+                                         help_text="Här kan du skriva en kortare beskrivning av området,"
+                                                   " max 300 tecken. Denna text är den beskrivning som visas över"
+                                                   "i föraren.",
+                                         max_length=300,
+                                         null=True,
+                                         blank=False)
+    long_description = MarkDownTextField(verbose_name="längre beskrivning",
+                                         help_text="Här finns utrymme att skriva en längre beskrivning av området."
+                                                   "Formuläret stödjer "
+                                                   "<a href=\"https://guides.github.com/features/mastering-markdown/\">"
+                                                   "markdown</a> formatering. Denna text visas på översiktssidan om ett"
+                                                   "område i föraren.",
+                                         max_length=4000,
+                                         null=True,
+                                         blank=False)
+
+    road_description = models.CharField(verbose_name="vägbeskrivning",
+                                        help_text="Här kan en ytterligare vägbeskrivning ges om det är önskvärt. "
+                                                  "(Området kommer att i ett senare steg att markeras på en karta). "
+                                                  "Max 4000 tecken.",
+                                        max_length=4000,
+                                        null=True,
+                                        blank=False)
     clubs = models.ManyToManyField('Club', verbose_name="ansvarig klubb/klubbar", blank=False)
     replacing = models.ForeignKey(
         'self',
@@ -171,7 +193,10 @@ class RockFace(models.Model):
     A rockface holds a set of routes. One area can have several Rockfaces.
     """
     name = models.CharField(verbose_name="namn", max_length=150)
-    area = models.ForeignKey(Area, verbose_name="område", related_name="rockfaces")
+    area = models.ForeignKey(Area,
+                             verbose_name="område",
+                             related_name="rockfaces",
+                             help_text="Område som denna sektor tillhör.")
     geo_data = models.CharField(verbose_name="plats för klippan",
                                 max_length=3000,
                                 blank=False,
@@ -185,8 +210,16 @@ class RockFace(models.Model):
                                     ]
                                 )
 
-    short_description = models.CharField(verbose_name="kort beskrivning", max_length=300, null=True, blank=True)
-    long_description = models.CharField(verbose_name="lång beskrivning", max_length=4000, null=True, blank=True)
+    short_description = models.CharField(verbose_name="kort beskrivning",
+                                         max_length=300,
+                                         null=True,
+                                         blank=True,
+                                         help_text="En kort beskrinvning (300 tecken) av sektorn.")
+    long_description = models.CharField(verbose_name="lång beskrivning",
+                                        max_length=4000,
+                                        null=True,
+                                        blank=True,
+                                        help_text="En längre beskrivning av området på max 4000 tecken.")
 
     replacing = models.ForeignKey(
         'self',

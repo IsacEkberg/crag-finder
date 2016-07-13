@@ -3,6 +3,7 @@ from django import forms
 from django.db.models import Q
 from django_api.models import APPROVED, BEING_REVIEWED_DELETE
 from django.contrib.auth.models import User
+from pagedown.widgets import AdminPagedownWidget
 
 
 class RockFaceAdminForm(forms.ModelForm):
@@ -12,7 +13,7 @@ class RockFaceAdminForm(forms.ModelForm):
         super(RockFaceAdminForm, self).__init__(*args, **kwargs)
         self.fields['geo_data'].widget.attrs['class'] = 'hidden'
         self.fields['short_description'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '2'})
-        self.fields['long_description'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '5'})
+        self.fields['long_description'].widget = AdminPagedownWidget()
 
 
 class AreaAdminForm(forms.ModelForm):
@@ -22,6 +23,7 @@ class AreaAdminForm(forms.ModelForm):
         super(AreaAdminForm, self).__init__(*args, **kwargs)
         self.fields['short_description'].widget = forms.Textarea(attrs={'cols': '40', 'rows': '2'})
         self.fields['clubs'].queryset = self.fields['clubs'].queryset.filter(Q(status=APPROVED) | Q(status=BEING_REVIEWED_DELETE))
+        self.fields['long_description'].widget = AdminPagedownWidget()
 
 
 class NewUserForm(forms.ModelForm):
