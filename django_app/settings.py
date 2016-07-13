@@ -292,6 +292,7 @@ LOGGING = {
 }
 
 PAGEDOWN_SHOW_PREVIEW = True
+PAGEDOWN_WIDGET_CSS = ('/django_static/pagedown/demo/browser/demo.css', "django_api/pagedown_custom.css",)
 
 ADMIN_TOOLS_MENU = 'django_app.menu.CustomMenu'
 ADMIN_TOOLS_APP_INDEX_DASHBOARD = 'django_app.dashboard.CustomAppIndexDashboard'

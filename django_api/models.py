@@ -2,7 +2,7 @@ import os
 
 from django.core.validators import RegexValidator
 from django.utils import timezone
-from pagedown.widgets import AdminPagedownWidget
+from pagedown.widgets import AdminPagedownWidget, PagedownWidget
 from reversion import revisions as reversion
 from django.db import models
 from django.contrib.auth.models import User
@@ -34,11 +34,11 @@ STATUSES = (
 
 
 class MarkDownTextField(models.TextField):
-    widget = AdminPagedownWidget
+    widget = AdminPagedownWidget()
 
 
 class MarkDownCharField(models.CharField):
-    widget = AdminPagedownWidget
+    widget = AdminPagedownWidget()
 
 
 class AreaImage(models.Model):
