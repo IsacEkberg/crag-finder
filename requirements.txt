@@ -11,3 +11,4 @@ django-reversion
 Pillow
 django-pagedown
 django-simple-captcha
+django-admin-tools
