@@ -32,7 +32,7 @@ $('document').ready(function(){
     var selectedObject = null;  // Selected node.
     var active_route = null; // The selected route
 
-    //Django ID of image.
+    // Django ID of image.
     var rockface_id = $("div.field-rockface_key").children("div").children("p").text();
     var rockfaceimage_id = $("div.field-id").children("div").children("p").text();
 
@@ -258,12 +258,12 @@ $('document').ready(function(){
 
 
     function onCanvasClick(options){
-        //Clicked a pre-existing point. Unmark previous + mark new.
+        // Clicked a pre-existing point. Unmark previous + mark new.
         if(options.target != null){
             // Pre-existing point.
         }
 
-        //Nothing clicked. New or connect point.
+        // Nothing clicked. New or connect point.
         else if(options.target == null){
             // New point.
             var circle = addPoint(options.e.offsetX/ratio, options.e.offsetY/ratio);
@@ -337,7 +337,7 @@ $('document').ready(function(){
         this.set('stroke', CIRCLE_SELECTED_COLOR);
         selectedObject = this;
         var in_route = false;
-        var current_circle = this;  //What this refers to changes in each loop...
+        var current_circle = this;  // What this refers to changes in each loop...
         $.each(routes[active_route], function (index, circle) {
             if(current_circle === circle){
                 // Marked circle already added to route
@@ -346,7 +346,7 @@ $('document').ready(function(){
         });
         if(!in_route){
             // Adding marked route to active route!
-            routes[active_route].push(this);  //add to the active route.
+            routes[active_route].push(this);  // Add to the active route.
             this.lockMovementX = false;
             this.lockMovementY = false;
             drawLines();
@@ -380,7 +380,7 @@ $('document').ready(function(){
         s.set('stroke', CIRCLE_ACTIVE_COLOR);
     }
 
-    //Unselect the selected and switch route to edit.
+    // Unselect the selected and switch route to edit.
     function activate_route_cb(route){
         active_route = route;
         unMarkCircle(selectedObject);
@@ -419,11 +419,11 @@ $('document').ready(function(){
                 lines[route_id] = [];
             }
             if(route.length <= 1) {
-                return true;  //Breaks loop.
+                return true;  // Breaks loop.
             }
 
             if(lines[route_id].length >= routes[route_id].length-1){
-                //Delete has happened. Remove it all.
+                // Delete has happened. Remove it all.
                 $.each(lines[route_id], function (index, line) {
                     canvas.remove(line);
                 });
@@ -467,12 +467,12 @@ $('document').ready(function(){
         if(from.length > 0){
             canvas.clear();
             for (var key in routes) {
-                // skip loop if the property is from prototype
+                // Skip loop if the property is from prototype
                 if (!routes.hasOwnProperty(key)) continue;
                 routes[key] = [];
             }
             for (var key in lines) {
-                // skip loop if the property is from prototype
+                // Skip loop if the property is from prototype
                 if (!routes.hasOwnProperty(key)) continue;
                 lines[key] = [];
             }
@@ -502,7 +502,7 @@ $('document').ready(function(){
 
     function to_json(){
         var data = {};
-        //Trouble to JSON-encode whole fabricjs object...
+        // Trouble to JSON-encode whole fabricjs object...
         $.each(routes, function (route_name, route_data) {
             if(route_data.length > 1){
                 data[route_name] = [];
@@ -526,19 +526,19 @@ $('document').ready(function(){
 
         var new_arrays = {};
 
-        //Search for references and filter away selected node.
+        // Search for references and filter away selected node.
         $.each(routes, function (route_id, route_array) {
             new_arrays[route_id] = $.grep(route_array, function (value) {
                 return value !== selectedObject;
             });
         });
-        //Replace old arrays.
+        // Replace old arrays.
         $.each(new_arrays, function (route_id, route_array) {
             routes[route_id] = route_array;
         });
 
         canvas.remove(selectedObject);
-        selectedObject = null;  //Garbage collector remoces old circle?
+        selectedObject = null;  // Garbage collector remoces old circle?
         drawLines();
 
     }
@@ -580,17 +580,17 @@ $('document').ready(function(){
                 scaleY: ratio,
                 scaleX: ratio
             });
-            canvas.selection = false; //Disables box selection
+            canvas.selection = false; // Disables box selection
             canvas.on({
                 'mouse:down': onCanvasClick,
                 'object:moving': drawLines
             });
             $('body').keyup(function (e) {
-                if(e.keyCode === 46){  //46 = delete.
+                if(e.keyCode === 46){  // 46 = delete.
                     deleteNode();
-                } else if ((e.keyCode == 89 && e.ctrlKey)||(e.keyCode == 90 && e.ctrlKey && e.shiftKey)) {  //90 = z.
+                } else if ((e.keyCode == 89 && e.ctrlKey)||(e.keyCode == 90 && e.ctrlKey && e.shiftKey)) {  // 89 = y, 90 = z.
                     redo_action();
-                } else if (e.keyCode == 90 && e.ctrlKey) {  //90 = z.
+                } else if (e.keyCode == 90 && e.ctrlKey) {  // 90 = z.
                     undo_action();
                 }
             });
@@ -601,7 +601,7 @@ $('document').ready(function(){
                 nodes[node.id] = addPoint(node.pos_x, node.pos_y, true);
             });
             $.each(data.routes, function (route_index, route) {
-                routes[route.id] = [];  //Make sure routes has an array for each route.
+                routes[route.id] = [];  // Make sure routes has an array for each route.
                 $.each(route.route_nodes, function (index, node) {
                     routes[route.id].push(nodes[node]);
                 });
@@ -611,7 +611,7 @@ $('document').ready(function(){
         });
     }
 
-//Start.
+    // Start.
     if(rockface_id && rockfaceimage_id){
         $.when(
             $.getScript('https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.6.2/fabric.min.js'),
