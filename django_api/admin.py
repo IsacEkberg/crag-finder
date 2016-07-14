@@ -360,7 +360,7 @@ class AreaAdmin(VersionAdmin):
     readonly_fields = ('image_tag', 'faces')
     fieldsets = (
         (None, {
-            'fields': ('name', 'faces', 'short_description', 'long_description', 'road_description', ),
+            'fields': ('name', 'short_description', 'long_description', 'road_description', ),
             'description': 'Ändra i fälten och tryck sedan spara för att göra ändringar. Detta är översikts'
                            'sidan för området, det måste matas in åtminstone en sektor där leder kan märkas ut.'
         }),
@@ -369,7 +369,13 @@ class AreaAdmin(VersionAdmin):
             'fields': ('clubs',),
             'description': 'Här kan du ange vilken/vilka klätterklubbar som ansvarar för accessfrågor för området.',
         }),
+        ('HIDDEN FIELDS', {  # These fields are hidden and used by javascript to render UI-elements.
+            'fields': ('faces',),
+            'classes': ('hidden',),
+        })
     )
+    class Media:
+        js = ("django_api/overview_widget.js",)
 
     def get_actions(self, request):
         actions = super(AreaAdmin, self).get_actions(request)
